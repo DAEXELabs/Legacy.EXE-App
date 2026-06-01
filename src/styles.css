@@ -19,8 +19,8 @@ h1 { font-size: 28px; line-height: 1.05; margin-bottom: 0; }
 h2 { margin-bottom: 8px; }
 p { color: #b9c1d9; }
 .level-pill { background: linear-gradient(135deg, #f6c65b, #8d6cff); color: #0a0c17; font-weight: 900; padding: 10px 12px; border-radius: 999px; white-space: nowrap; }
-.tabs { margin: 22px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 6px; border-radius: 18px; background: rgba(255,255,255,.06); }
-.tabs button { border: 0; border-radius: 14px; padding: 10px 4px; color: #aeb8da; background: transparent; text-transform: capitalize; font-size: 12px; }
+.tabs { margin: 22px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 6px; border-radius: 18px; background: rgba(255,255,255,.06); }
+.tabs button { border: 0; border-radius: 14px; padding: 10px 4px; color: #aeb8da; background: transparent; text-transform: capitalize; font-size: 11px; min-height: 38px; }
 .tabs button.active { background: rgba(255,255,255,.13); color: white; }
 .screen-stack { display: grid; gap: 16px; }
 .hero-card, .xp-card, .boss-card, .form-card, .quest-list { background: rgba(255,255,255,.075); border: 1px solid rgba(255,255,255,.11); border-radius: 24px; padding: 16px; backdrop-filter: blur(10px); }
@@ -49,7 +49,8 @@ p { color: #b9c1d9; }
 .complete-btn:disabled { color: #51ffa9; background: rgba(81,255,169,.08); }
 .ghost { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,.1); background: transparent; color: #dce3ff; padding: 8px 10px; border-radius: 12px; font-size: 12px; }
 .form-card { display: grid; gap: 12px; }
-input, select { width: 100%; border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 12px; background: rgba(0,0,0,.25); color: white; }
+input, select, textarea { width: 100%; border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 12px; background: rgba(0,0,0,.25); color: white; }
+textarea { min-height: 96px; resize: vertical; }
 .form-grid { display: grid; grid-template-columns: 1fr 100px; gap: 10px; }
 .primary, .danger { border: 0; border-radius: 16px; padding: 13px; font-weight: 800; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
 .primary { background: linear-gradient(135deg, #f6c65b, #8d6cff); color: #070916; }
@@ -98,4 +99,6 @@ input, select { width: 100%; border: 1px solid rgba(255,255,255,.12); border-rad
 @media (max-width: 460px) {
   .app-shell { padding: 0; }
   .phone-frame { border-radius: 0; min-height: 100vh; border: 0; }
+  .tabs { grid-template-columns: repeat(3, 1fr); }
+  .tabs button { font-size: 10px; padding: 9px 3px; }
 }
