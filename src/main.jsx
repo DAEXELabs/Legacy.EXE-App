@@ -38,6 +38,81 @@ const PROOF_META = {
   workout: { label: 'Workout KPI', icon: Dumbbell },
 };
 
+const BOSSES = [
+  {
+    name: 'The Drift',
+    description: 'It feeds on delay, excuses, and unfinished intentions.',
+    weakness: 'Consistent quest completion.',
+    victory: 'The Drift has been broken. Momentum belongs to you.',
+  },
+  {
+    name: 'The Noise Eater',
+    description: 'It feeds on distraction, scrolling, and scattered attention.',
+    weakness: 'Focus sessions and discipline quests.',
+    victory: 'The noise has been silenced. Your focus is yours again.',
+  },
+  {
+    name: 'The Doubt Wraith',
+    description: 'It whispers that you are not ready, not worthy, and not enough.',
+    weakness: 'Action before confidence.',
+    victory: 'Doubt lost its voice. You moved anyway.',
+  },
+  {
+    name: 'The Comfort Tyrant',
+    description: 'It rules through ease, softness, and avoiding hard things.',
+    weakness: 'Doing the necessary thing when it is inconvenient.',
+    victory: 'Comfort no longer commands you.',
+  },
+  {
+    name: 'The Guiltborn',
+    description: 'It grows from shame, regret, and the weight of yesterday.',
+    weakness: 'Repentance, responsibility, and forward movement.',
+    victory: 'The past did not get the final word today.',
+  },
+  {
+    name: 'The Spiral',
+    description: 'It traps your mind in loops, what-ifs, and overthinking.',
+    weakness: 'Simple next actions.',
+    victory: 'The loop was cut. You returned to the present.',
+  },
+  {
+    name: 'The False Self',
+    description: 'It keeps you living in fantasy instead of execution.',
+    weakness: 'Real-world proof.',
+    victory: 'Fantasy bowed to evidence.',
+  },
+  {
+    name: 'The Fear Architect',
+    description: 'It builds walls out of failure, success, judgment, and uncertainty.',
+    weakness: 'Courageous attempts.',
+    victory: 'The walls cracked. You stepped forward.',
+  },
+  {
+    name: 'The Fragmentor',
+    description: 'It scatters your energy across too many unfinished paths.',
+    weakness: 'Priority, focus, and completion.',
+    victory: 'Your focus was reforged.',
+  },
+  {
+    name: 'The Craving Maw',
+    description: 'It feeds on impulse, lust, escape, and quick relief.',
+    weakness: 'Self-control and replacement actions.',
+    victory: 'The craving passed. You remained.',
+  },
+  {
+    name: 'The Hollow King',
+    description: 'It drains meaning and makes progress feel empty.',
+    weakness: 'Connection, gratitude, and purposeful action.',
+    victory: 'Meaning returned to the throne.',
+  },
+  {
+    name: 'The Unfinished One',
+    description: 'It is made of abandoned projects, broken promises, and lost momentum.',
+    weakness: 'Finishing what you start.',
+    victory: 'The unfinished became evidence of discipline.',
+  },
+];
+
 const starterState = {
   playerName: '',
   avatar: '⚔️',
@@ -138,6 +213,23 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function getWeekNumber() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const days = Math.floor((now - start) / 86400000);
+  return Math.ceil((days + start.getDay() + 1) / 7);
+}
+
+function getWeeklyBoss() {
+  const week = getWeekNumber();
+  const index = (week - 1) % BOSSES.length;
+
+  return {
+    ...BOSSES[index],
+    week,
+  };
+}
+
 function getBossProgress(quests) {
   const completed = quests.filter(q => q.completedToday).length;
   return Math.min(100, Math.round((completed / Math.max(quests.length, 1)) * 100));
@@ -204,6 +296,7 @@ function App() {
     return () => clearTimeout(timeout);
   }, [timerQuest, timerDone]);
 
+  const weeklyBoss = getWeeklyBoss();
   const currentLevelXp = xpForLevel(state.level);
   const progress = Math.min(100, Math.round((state.xp / currentLevelXp) * 100));
   const bossProgress = getBossProgress(state.quests);
@@ -219,14 +312,14 @@ function App() {
 
   const driftMessage =
     bossProgress >= 100
-      ? 'The Drift has been defeated today.'
+      ? weeklyBoss.victory
       : bossProgress >= 75
         ? 'Victory is close. Finish the compile.'
         : bossProgress >= 50
-          ? 'The Drift is weakening.'
+          ? `${weeklyBoss.name} is weakening.`
           : bossProgress >= 25
             ? 'Momentum is forming.'
-            : 'The Drift is still feeding.';
+            : `${weeklyBoss.name} is still feeding.`;
 
   const dominantStat = useMemo(() => {
     return Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0][0];
@@ -525,14 +618,12 @@ function App() {
             <div className="boss-card">
               <div className="row-between">
                 <div>
-                  <p className="eyebrow">Weekly Boss</p>
-                  <h3>The Drift</h3>
+                  <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
+                  <h3>{weeklyBoss.name}</h3>
                 </div>
                 <Skull />
               </div>
-              <p>
-                The Drift feeds on delay, excuses, and unfinished intentions. Quests damage it.
-              </p>
+              <p>{weeklyBoss.description}</p>
               <p>{driftMessage}</p>
               <div className="progress-track">
                 <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
@@ -602,8 +693,8 @@ function App() {
 
               <div className="stat-card">
                 <Skull size={20} />
-                <span>The Drift</span>
-                <strong>{bossProgress}%</strong>
+                <span>Weekly Boss</span>
+                <strong>{weeklyBoss.name}</strong>
               </div>
             </div>
 
@@ -774,10 +865,11 @@ function App() {
               <div className="boss-avatar">
                 <Skull size={70} />
               </div>
-              <p className="eyebrow">Weekly Boss</p>
-              <h2>The Drift</h2>
+              <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
+              <h2>{weeklyBoss.name}</h2>
+              <p>{weeklyBoss.description}</p>
               <p>
-                It grows when your goals stay imaginary. Damage it with proof-backed action.
+                <strong>Weakness:</strong> {weeklyBoss.weakness}
               </p>
               <p>{driftMessage}</p>
               <div className="progress-track">
@@ -797,7 +889,7 @@ function App() {
                 <Flame />
                 <div>
                   <strong>Complete quests</strong>
-                  <p>Every completed quest damages The Drift.</p>
+                  <p>Every completed quest damages {weeklyBoss.name}.</p>
                 </div>
                 <span>
                   {completedToday}/{state.quests.length}
