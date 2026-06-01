@@ -46,6 +46,9 @@ const BOSSES = [
     domain: 'Delay',
     description: 'It feeds on delay, excuses, and unfinished intentions.',
     weakness: 'Consistent quest completion.',
+    codex: 'The Drift does not attack all at once. It wins by making tomorrow feel harmless.',
+    realLifeForm: 'Procrastination, vague plans, low urgency, and starting without finishing.',
+    countermeasure: 'Choose one quest and complete it before negotiating with your mood.',
     victory: 'The Drift has been broken. Momentum belongs to you.',
   },
   {
@@ -55,6 +58,9 @@ const BOSSES = [
     domain: 'Distraction',
     description: 'It feeds on distraction, scrolling, and scattered attention.',
     weakness: 'Focus sessions and discipline quests.',
+    codex: 'The Noise Eater makes everything louder than your purpose.',
+    realLifeForm: 'Scrolling, notifications, multitasking, background noise, and constant checking.',
+    countermeasure: 'Silence one input, start one timer, and finish one focused action.',
     victory: 'The noise has been silenced. Your focus is yours again.',
   },
   {
@@ -64,6 +70,9 @@ const BOSSES = [
     domain: 'Self-Doubt',
     description: 'It whispers that you are not ready, not worthy, and not enough.',
     weakness: 'Action before confidence.',
+    codex: 'The Doubt Wraith does not need proof. It only needs hesitation.',
+    realLifeForm: 'Second-guessing, fear of judgment, imposter thoughts, and waiting to feel ready.',
+    countermeasure: 'Take the smallest visible action before confidence shows up.',
     victory: 'Doubt lost its voice. You moved anyway.',
   },
   {
@@ -73,6 +82,9 @@ const BOSSES = [
     domain: 'Comfort',
     description: 'It rules through ease, softness, and avoiding hard things.',
     weakness: 'Doing the necessary thing when it is inconvenient.',
+    codex: 'The Comfort Tyrant offers peace, but charges you with stagnation.',
+    realLifeForm: 'Avoiding workouts, hard talks, study, discipline, and anything uncomfortable.',
+    countermeasure: 'Do the necessary thing while it is still inconvenient.',
     victory: 'Comfort no longer commands you.',
   },
   {
@@ -82,6 +94,9 @@ const BOSSES = [
     domain: 'Shame',
     description: 'It grows from shame, regret, and the weight of yesterday.',
     weakness: 'Repentance, responsibility, and forward movement.',
+    codex: 'The Guiltborn chains you to what happened so you forget what can still be rebuilt.',
+    realLifeForm: 'Shame loops, regret, spiritual fear, self-punishment, and hiding.',
+    countermeasure: 'Own what is yours, receive grace, and complete the next right action.',
     victory: 'The past did not get the final word today.',
   },
   {
@@ -91,6 +106,9 @@ const BOSSES = [
     domain: 'Overthinking',
     description: 'It traps your mind in loops, what-ifs, and overthinking.',
     weakness: 'Simple next actions.',
+    codex: 'The Spiral turns thinking into a maze and calls it preparation.',
+    realLifeForm: 'What-ifs, mental loops, overplanning, fear scenarios, and analysis paralysis.',
+    countermeasure: 'Write the next action in one sentence, then do it.',
     victory: 'The loop was cut. You returned to the present.',
   },
   {
@@ -100,6 +118,9 @@ const BOSSES = [
     domain: 'Fantasy',
     description: 'It keeps you living in fantasy instead of execution.',
     weakness: 'Real-world proof.',
+    codex: 'The False Self lets you feel like a champion without requiring evidence.',
+    realLifeForm: 'Daydreaming, identity fantasy, empty planning, and imagining progress instead of making it.',
+    countermeasure: 'Trade imagination for proof. Complete something measurable.',
     victory: 'Fantasy bowed to evidence.',
   },
   {
@@ -109,6 +130,9 @@ const BOSSES = [
     domain: 'Fear',
     description: 'It builds walls out of failure, success, judgment, and uncertainty.',
     weakness: 'Courageous attempts.',
+    codex: 'The Fear Architect builds prisons out of possibilities.',
+    realLifeForm: 'Fear of failing, fear of winning, fear of being seen, and fear of being wrong.',
+    countermeasure: 'Make one courageous attempt and let the result be information.',
     victory: 'The walls cracked. You stepped forward.',
   },
   {
@@ -118,6 +142,9 @@ const BOSSES = [
     domain: 'Scattered Focus',
     description: 'It scatters your energy across too many unfinished paths.',
     weakness: 'Priority, focus, and completion.',
+    codex: 'The Fragmentor does not stop you from working. It makes you work everywhere at once.',
+    realLifeForm: 'Too many projects, constant switching, unfinished tabs, and unclear priorities.',
+    countermeasure: 'Pick one priority, close the extra loops, and finish the active quest.',
     victory: 'Your focus was reforged.',
   },
   {
@@ -127,6 +154,9 @@ const BOSSES = [
     domain: 'Impulse',
     description: 'It feeds on impulse, lust, escape, and quick relief.',
     weakness: 'Self-control and replacement actions.',
+    codex: 'The Craving Maw promises relief but leaves you thirsty again.',
+    realLifeForm: 'Porn, lust, bingeing, compulsive checking, emotional eating, and escape habits.',
+    countermeasure: 'Delay the impulse, change location, and replace it with a body-based action.',
     victory: 'The craving passed. You remained.',
   },
   {
@@ -136,6 +166,9 @@ const BOSSES = [
     domain: 'Numbness',
     description: 'It drains meaning and makes progress feel empty.',
     weakness: 'Connection, gratitude, and purposeful action.',
+    codex: 'The Hollow King convinces you that nothing matters so you stop reaching.',
+    realLifeForm: 'Numbness, isolation, hopelessness, emotional shutdown, and disconnection.',
+    countermeasure: 'Reconnect with one person, name one grace, and complete one purposeful action.',
     victory: 'Meaning returned to the throne.',
   },
   {
@@ -145,6 +178,9 @@ const BOSSES = [
     domain: 'Abandoned Momentum',
     description: 'It is made of abandoned projects, broken promises, and lost momentum.',
     weakness: 'Finishing what you start.',
+    codex: 'The Unfinished One grows every time a promise is buried without closure.',
+    realLifeForm: 'Abandoned projects, broken routines, half-built ideas, and forgotten commitments.',
+    countermeasure: 'Finish, delete, delegate, or schedule it. Do not leave it haunting you.',
     victory: 'The unfinished became evidence of discipline.',
   },
 ];
@@ -913,6 +949,23 @@ function App() {
               <p>
                 <strong>Weakness:</strong> {weeklyBoss.weakness}
               </p>
+
+              <div className="codex-card">
+                <p className="eyebrow">Codex Entry</p>
+                <h3>{weeklyBoss.domain}</h3>
+                <p>{weeklyBoss.codex}</p>
+
+                <div className="codex-row">
+                  <strong>Real-life form</strong>
+                  <p>{weeklyBoss.realLifeForm}</p>
+                </div>
+
+                <div className="codex-row">
+                  <strong>Countermeasure</strong>
+                  <p>{weeklyBoss.countermeasure}</p>
+                </div>
+              </div>
+
               <p>{driftMessage}</p>
               <div className="progress-track">
                 <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
