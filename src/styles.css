@@ -94,6 +94,19 @@ textarea { min-height: 96px; resize: vertical; }
 .chronicle-post p { margin: 0; }
 .chronicle-image { width: 100%; max-height: 240px; object-fit: cover; border-radius: 18px; border: 1px solid rgba(255,255,255,.1); background: rgba(0,0,0,.25); }
 .chronicle-reward { display: inline-flex; width: fit-content; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 999px; background: rgba(246,198,91,.12); color: #f6c65b; font-size: .76rem; font-weight: 900; }
+.operator-profile { position: relative; overflow: hidden; background: radial-gradient(circle at top right, rgba(246,198,91,.22), transparent 42%), rgba(255,255,255,.075); }
+.operator-profile::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(135deg, rgba(255,255,255,.08), transparent 35%); opacity: .45; }
+.operator-profile > * { position: relative; z-index: 1; }
+.profile-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.profile-metric { padding: 12px; border-radius: 18px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.09); display: grid; gap: 5px; }
+.profile-metric span { color: #b9c1d9; font-size: .74rem; }
+.profile-metric strong { color: #f7f7fb; font-size: 1.3rem; line-height: 1; }
+.profile-proof-list { display: grid; gap: 10px; }
+.profile-proof-card { display: grid; gap: 8px; padding: 12px; border-radius: 18px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.09); }
+.profile-proof-card h4 { margin-bottom: 0; }
+.profile-proof-card p { margin: 0; font-size: .82rem; }
+.profile-proof-card img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 14px; border: 1px solid rgba(255,255,255,.1); }
+.profile-empty-proof { padding: 14px; border-radius: 18px; background: rgba(0,0,0,.18); border: 1px dashed rgba(255,255,255,.14); }
 .empty-state { padding: 18px; border-radius: 20px; background: rgba(0,0,0,.18); border: 1px dashed rgba(255,255,255,.16); text-align: center; }
 @keyframes victory-spin { to { transform: rotate(360deg); } }
 @media (max-width: 460px) {
