@@ -693,15 +693,33 @@ function App() {
               </button>
             </form>
 
-            <div className="quest-list">
-              {state.quests.map(q => (
-                <QuestItem
-                  key={q.id}
-                  quest={q}
-                  onComplete={requestQuestCompletion}
-                />
-              ))}
-            </div>
+            {Object.entries(STAT_META).map(([statKey, meta]) => {
+              const StatIcon = meta.icon;
+              const statQuests = state.quests.filter(q => q.stat === statKey);
+
+              if (statQuests.length === 0) return null;
+
+              return (
+                <div className="quest-list" key={statKey}>
+                  <div className="row-between">
+                    <h3>
+                      <StatIcon size={18} /> {meta.label}
+                    </h3>
+                    <span className="proof-badge">
+                      {statQuests.filter(q => q.completedToday).length}/{statQuests.length}
+                    </span>
+                  </div>
+
+                  {statQuests.map(q => (
+                    <QuestItem
+                      key={q.id}
+                      quest={q}
+                      onComplete={requestQuestCompletion}
+                    />
+                  ))}
+                </div>
+              );
+            })}
           </section>
         )}
 
