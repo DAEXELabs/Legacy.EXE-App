@@ -48,6 +48,7 @@ const starterState = {
   lastCompletedDate: null,
   onboarded: false,
   workoutLogs: [],
+  dailyReflections: {},
   stats: {
     health: 0,
     knowledge: 0,
@@ -171,6 +172,7 @@ function App() {
   });
 
   const [tab, setTab] = useState('home');
+  const [dailyReflection, setDailyReflection] = useState('');
   const [checkinQuest, setCheckinQuest] = useState(null);
   const [checkinText, setCheckinText] = useState('');
   const [timerQuest, setTimerQuest] = useState(null);
@@ -207,6 +209,24 @@ function App() {
   const bossProgress = getBossProgress(state.quests);
   const tier = computeTier(state.level);
   const completedToday = state.quests.filter(q => q.completedToday).length;
+
+  const dailyXpEarned = state.quests
+    .filter(q => q.completedToday)
+    .reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
+
+  const strongestStat = Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0];
+  const savedReflection = state.dailyReflections?.[todayKey()] || '';
+
+  const driftMessage =
+    bossProgress >= 100
+      ? 'The Drift has been defeated today.'
+      : bossProgress >= 75
+        ? 'Victory is close. Finish the compile.'
+        : bossProgress >= 50
+          ? 'The Drift is weakening.'
+          : bossProgress >= 25
+            ? 'Momentum is forming.'
+            : 'The Drift is still feeding.';
 
   const dominantStat = useMemo(() => {
     return Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0][0];
@@ -250,6 +270,7 @@ function App() {
         workoutLogs: payload.workoutLog
           ? [...(prev.workoutLogs || []), payload.workoutLog]
           : (prev.workoutLogs || []),
+        dailyReflections: prev.dailyReflections || {},
         stats: {
           ...prev.stats,
           [quest.stat]: prev.stats[quest.stat] + 1,
@@ -339,6 +360,23 @@ function App() {
     completeQuest(timerQuest.id);
     setTimerQuest(null);
     setTimerDone(false);
+  }
+
+  function saveDailyReflection(e) {
+    e.preventDefault();
+
+    const text = dailyReflection.trim();
+    if (text.length < 5) return;
+
+    setState(prev => ({
+      ...prev,
+      dailyReflections: {
+        ...(prev.dailyReflections || {}),
+        [todayKey()]: text,
+      },
+    }));
+
+    setDailyReflection('');
   }
 
   function addQuest(e) {
@@ -448,7 +486,7 @@ function App() {
         </header>
 
         <nav className="tabs">
-          {['home', 'quests', 'character', 'boss'].map(item => (
+          {['home', 'quests', 'compile', 'character', 'boss'].map(item => (
             <button
               key={item}
               onClick={() => setTab(item)}
@@ -495,6 +533,7 @@ function App() {
               <p>
                 The Drift feeds on delay, excuses, and unfinished intentions. Quests damage it.
               </p>
+              <p>{driftMessage}</p>
               <div className="progress-track">
                 <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
               </div>
@@ -521,6 +560,78 @@ function App() {
                   />
                 ))}
             </div>
+          </section>
+        )}
+
+        {tab === 'compile' && (
+          <section className="screen-stack">
+            <div className="boss-card">
+              <p className="eyebrow">Daily Compile</p>
+              <h2>What did today prove?</h2>
+              <p>
+                You are not just checking boxes. You are compiling evidence of who you are becoming.
+              </p>
+
+              <div className="progress-track">
+                <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
+              </div>
+
+              <small>{driftMessage}</small>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-card">
+                <CheckCircle2 size={20} />
+                <span>Quests Complete</span>
+                <strong>
+                  {completedToday}/{state.quests.length}
+                </strong>
+              </div>
+
+              <div className="stat-card">
+                <Sparkles size={20} />
+                <span>XP Earned Today</span>
+                <strong>{dailyXpEarned}</strong>
+              </div>
+
+              <div className="stat-card">
+                <Shield size={20} />
+                <span>Strongest Stat</span>
+                <strong>{STAT_META[strongestStat[0]].label}</strong>
+              </div>
+
+              <div className="stat-card">
+                <Skull size={20} />
+                <span>The Drift</span>
+                <strong>{bossProgress}%</strong>
+              </div>
+            </div>
+
+            <form className="form-card" onSubmit={saveDailyReflection}>
+              <h3>Reflection</h3>
+              <p>Before you close the day, write one honest sentence.</p>
+
+              {savedReflection && (
+                <div className="reward unlocked">
+                  <MessageSquareText />
+                  <div>
+                    <strong>Saved Reflection</strong>
+                    <p>{savedReflection}</p>
+                  </div>
+                  <span>Today</span>
+                </div>
+              )}
+
+              <textarea
+                value={dailyReflection}
+                onChange={e => setDailyReflection(e.target.value)}
+                placeholder="Today proved that I..."
+              />
+
+              <button className="primary" disabled={dailyReflection.trim().length < 5}>
+                Save Daily Compile
+              </button>
+            </form>
           </section>
         )}
 
@@ -650,6 +761,7 @@ function App() {
               <p>
                 It grows when your goals stay imaginary. Damage it with proof-backed action.
               </p>
+              <p>{driftMessage}</p>
               <div className="progress-track">
                 <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
               </div>
