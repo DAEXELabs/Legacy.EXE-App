@@ -7,6 +7,7 @@ import {
   Heart,
   Palette,
   Shield,
+  Sword,
   Trophy,
   Plus,
   CheckCircle2,
@@ -16,12 +17,10 @@ import {
   Sparkles,
   Timer,
   MessageSquareText,
-  Dumbbell,
-  Scale,
 } from 'lucide-react';
 import './styles.css';
 
-const STORAGE_KEY = 'legacy-exe-state-v3';
+const STORAGE_KEY = 'legacy-exe-state-v2';
 
 const STAT_META = {
   health: { label: 'Health', icon: Activity, color: '#51ffa9' },
@@ -36,22 +35,17 @@ const PROOF_META = {
   honor: { label: 'Honor', icon: CheckCircle2 },
   timer: { label: 'Timer', icon: Timer },
   checkin: { label: 'Check-in', icon: MessageSquareText },
-  workout: { label: 'Workout KPI', icon: Dumbbell },
-  body: { label: 'Body Check', icon: Scale },
 };
 
 const starterState = {
   playerName: '',
   avatar: '⚔️',
   title: 'Uncompiled Operator',
-  bodyGoal: 'recomp',
   xp: 0,
   level: 1,
   streak: 0,
   lastCompletedDate: null,
   onboarded: false,
-  workoutLogs: [],
-  bodyLogs: [],
   stats: {
     health: 0,
     knowledge: 0,
@@ -61,8 +55,7 @@ const starterState = {
     discipline: 0,
   },
   quests: [
-    { id: crypto.randomUUID(), title: 'Workout 30 minutes', stat: 'health', xp: 100, frequency: 'daily', proof: 'workout', completedToday: false },
-    { id: crypto.randomUUID(), title: 'Weekly body progress check-in', stat: 'health', xp: 75, frequency: 'weekly', proof: 'body', completedToday: false },
+    { id: crypto.randomUUID(), title: 'Workout 30 minutes', stat: 'health', xp: 100, frequency: 'daily', proof: 'honor', completedToday: false },
     { id: crypto.randomUUID(), title: 'Read or study 20 minutes', stat: 'knowledge', xp: 50, frequency: 'daily', proof: 'checkin', completedToday: false },
     { id: crypto.randomUUID(), title: 'Intentional family time', stat: 'relationships', xp: 50, frequency: 'daily', proof: 'checkin', completedToday: false },
     { id: crypto.randomUUID(), title: 'Focus session 25 minutes', stat: 'discipline', xp: 75, frequency: 'daily', proof: 'timer', completedToday: false },
@@ -99,16 +92,6 @@ function getBossProgress(quests) {
   return Math.min(100, Math.round((completed / Math.max(quests.length, 1)) * 100));
 }
 
-function calculateEffortScore(log) {
-  const duration = Number(log.duration || 0);
-  const effort = Number(log.effort || 0);
-  const sets = Number(log.sets || 0);
-  const reps = Number(log.reps || 0);
-  const weight = Number(log.weight || 0);
-  const distance = Number(log.distance || 0);
-  return Math.round(duration + effort * 5 + sets * 2 + Math.floor(reps / 10) + Math.floor(weight / 25) + Math.floor(distance * 5));
-}
-
 function App() {
   const [state, setState] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -120,11 +103,7 @@ function App() {
   const [checkinText, setCheckinText] = useState('');
   const [timerQuest, setTimerQuest] = useState(null);
   const [timerDone, setTimerDone] = useState(false);
-  const [workoutQuest, setWorkoutQuest] = useState(null);
-  const [bodyQuest, setBodyQuest] = useState(null);
-  const [workoutProof, setWorkoutProof] = useState({ type: 'Strength', duration: 30, effort: 6, sets: 6, reps: 60, weight: '', distance: '', notes: '' });
-  const [bodyProof, setBodyProof] = useState({ goal: 'recomp', weight: '', waist: '', note: '' });
-  const [profileDraft, setProfileDraft] = useState({ playerName: '', avatar: '⚔️', title: 'Uncompiled Operator', bodyGoal: 'recomp' });
+  const [profileDraft, setProfileDraft] = useState({ playerName: '', avatar: '⚔️', title: 'Uncompiled Operator' });
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -141,10 +120,6 @@ function App() {
   const bossProgress = getBossProgress(state.quests);
   const tier = computeTier(state.level);
   const completedToday = state.quests.filter(q => q.completedToday).length;
-  const latestWorkout = state.workoutLogs?.[state.workoutLogs.length - 1];
-  const latestBody = state.bodyLogs?.[state.bodyLogs.length - 1];
-  const weeklyWorkoutMinutes = (state.workoutLogs || []).slice(-7).reduce((sum, log) => sum + Number(log.duration || 0), 0);
-  const weeklyEffortScore = (state.workoutLogs || []).slice(-7).reduce((sum, log) => sum + Number(log.effortScore || 0), 0);
 
   const dominantStat = useMemo(() => {
     return Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0][0];
@@ -156,7 +131,7 @@ function App() {
     setState(prev => ({ ...prev, ...profileDraft, playerName: name, onboarded: true }));
   }
 
-  function completeQuest(id, payload = {}) {
+  function completeQuest(id) {
     setState(prev => {
       const quest = prev.quests.find(q => q.id === id);
       if (!quest || quest.completedToday) return prev;
@@ -185,9 +160,6 @@ function App() {
         level: nextLevel,
         streak: nextStreak,
         lastCompletedDate: today,
-        workoutLogs: payload.workoutLog ? [...(prev.workoutLogs || []), payload.workoutLog] : (prev.workoutLogs || []),
-        bodyLogs: payload.bodyLog ? [...(prev.bodyLogs || []), payload.bodyLog] : (prev.bodyLogs || []),
-        bodyGoal: payload.bodyLog?.goal || prev.bodyGoal,
         stats: {
           ...prev.stats,
           [quest.stat]: prev.stats[quest.stat] + 1,
@@ -201,16 +173,6 @@ function App() {
 
   function requestQuestCompletion(quest) {
     if (quest.completedToday) return;
-    if (quest.proof === 'workout') {
-      setWorkoutQuest(quest);
-      setWorkoutProof({ type: 'Strength', duration: 30, effort: 6, sets: 6, reps: 60, weight: '', distance: '', notes: '' });
-      return;
-    }
-    if (quest.proof === 'body') {
-      setBodyQuest(quest);
-      setBodyProof({ goal: state.bodyGoal || 'recomp', weight: latestBody?.weight || '', waist: latestBody?.waist || '', note: '' });
-      return;
-    }
     if (quest.proof === 'checkin') {
       setCheckinQuest(quest);
       setCheckinText('');
@@ -222,33 +184,6 @@ function App() {
       return;
     }
     completeQuest(quest.id);
-  }
-
-  function submitWorkout(e) {
-    e.preventDefault();
-    if (!workoutQuest) return;
-    const effortScore = calculateEffortScore(workoutProof);
-    if (Number(workoutProof.duration || 0) < 10 || Number(workoutProof.effort || 0) < 3 || effortScore < 25) return;
-    completeQuest(workoutQuest.id, {
-      workoutLog: {
-        ...workoutProof,
-        effortScore,
-        date: todayKey(),
-      },
-    });
-    setWorkoutQuest(null);
-  }
-
-  function submitBody(e) {
-    e.preventDefault();
-    if (!bodyQuest || !bodyProof.weight) return;
-    completeQuest(bodyQuest.id, {
-      bodyLog: {
-        ...bodyProof,
-        date: todayKey(),
-      },
-    });
-    setBodyQuest(null);
   }
 
   function submitCheckin(e) {
@@ -306,13 +241,6 @@ function App() {
                 <button type="button" key={icon} className={profileDraft.avatar === icon ? 'active' : ''} onClick={() => setProfileDraft({ ...profileDraft, avatar: icon })}>{icon}</button>
               ))}
             </div>
-            <label>Primary Body Goal</label>
-            <select value={profileDraft.bodyGoal} onChange={e => setProfileDraft({ ...profileDraft, bodyGoal: e.target.value })}>
-              <option value="lose">Lose Weight</option>
-              <option value="muscle">Gain Muscle</option>
-              <option value="recomp">Recomposition</option>
-              <option value="maintain">Maintain</option>
-            </select>
             <label>Title</label>
             <select value={profileDraft.title} onChange={e => setProfileDraft({ ...profileDraft, title: e.target.value })}>
               <option>Uncompiled Operator</option>
@@ -376,13 +304,6 @@ function App() {
               <small>{bossProgress}% defeated today • {completedToday}/{state.quests.length} quests complete</small>
             </div>
 
-            <div className="stats-grid">
-              <KpiCard label="Workout Minutes" value={weeklyWorkoutMinutes} detail="last 7 logs" />
-              <KpiCard label="Effort Score" value={weeklyEffortScore} detail="last 7 logs" />
-              <KpiCard label="Body Goal" value={(state.bodyGoal || 'recomp').toUpperCase()} detail={latestBody?.weight ? `${latestBody.weight} lbs latest` : 'no check-in yet'} />
-              <KpiCard label="Last Workout" value={latestWorkout?.effortScore || 0} detail={latestWorkout ? latestWorkout.type : 'no log yet'} />
-            </div>
-
             <div className="quest-list">
               <div className="row-between"><h3>Today's Quests</h3><button className="ghost" onClick={resetDay}><RotateCcw size={16} /> Reset day</button></div>
               {state.quests.slice(0, 4).map(q => <QuestItem key={q.id} quest={q} onComplete={requestQuestCompletion} />)}
@@ -423,7 +344,6 @@ function App() {
                 <p className="eyebrow">{tier}</p>
                 <h2>{state.playerName}</h2>
                 <p>{state.title}</p>
-                <p>Goal: {(state.bodyGoal || 'recomp').toUpperCase()}</p>
                 <p>Streak: {state.streak} completions</p>
               </div>
             </div>
@@ -432,12 +352,6 @@ function App() {
                 const Icon = meta.icon;
                 return <div className="stat-card" key={key}><Icon size={20} /><span>{meta.label}</span><strong>{state.stats[key]}</strong></div>;
               })}
-            </div>
-            <div className="quest-list">
-              <h3>Health KPIs</h3>
-              <div className="reward unlocked"><Dumbbell /><div><strong>{weeklyWorkoutMinutes} minutes</strong><p>Workout minutes across your latest logs.</p></div><span>Tracked</span></div>
-              <div className="reward unlocked"><Flame /><div><strong>{weeklyEffortScore} effort score</strong><p>Duration, effort, sets, reps, weight, and distance combined.</p></div><span>KPI</span></div>
-              <div className="reward unlocked"><Scale /><div><strong>{latestBody?.weight || '--'} lbs</strong><p>Latest body check-in. Goal: {(state.bodyGoal || 'recomp').toUpperCase()}</p></div><span>Progress</span></div>
             </div>
             <div className="quest-list">
               <h3>Unlocks</h3>
@@ -466,70 +380,12 @@ function App() {
               <h3>Victory Conditions</h3>
               <div className="reward unlocked"><Flame /><div><strong>Complete quests</strong><p>Every completed quest damages The Drift.</p></div><span>{completedToday}/{state.quests.length}</span></div>
               <div className={`reward ${completedToday >= 3 ? 'unlocked' : ''}`}><Sparkles /><div><strong>Complete 3 today</strong><p>Reach a daily momentum threshold.</p></div><span>{completedToday >= 3 ? 'Done' : 'Pending'}</span></div>
-              <div className={`reward ${weeklyEffortScore >= 75 ? 'unlocked' : ''}`}><Dumbbell /><div><strong>Earn 75 workout effort</strong><p>Track real training, not just intentions.</p></div><span>{weeklyEffortScore >= 75 ? 'Done' : 'Pending'}</span></div>
               <div className={`reward ${state.streak >= 3 ? 'unlocked' : ''}`}><Shield /><div><strong>Build a 3-completion streak</strong><p>Prove you can return to the system.</p></div><span>{state.streak >= 3 ? 'Done' : 'Pending'}</span></div>
             </div>
             <button className="danger" onClick={resetApp}>Reset Operator</button>
           </section>
         )}
       </section>
-
-      {workoutQuest && (
-        <div className="modal-backdrop">
-          <form className="modal-card" onSubmit={submitWorkout}>
-            <p className="eyebrow">Workout Proof KPI</p>
-            <h3>{workoutQuest.title}</h3>
-            <p>Log measurable effort before XP unlocks. Minimum: 10 minutes, effort 3+, score 25+.</p>
-            <div className="form-grid">
-              <select value={workoutProof.type} onChange={e => setWorkoutProof({ ...workoutProof, type: e.target.value })}>
-                <option>Strength</option>
-                <option>Cardio</option>
-                <option>Mobility</option>
-                <option>Sport</option>
-                <option>Other</option>
-              </select>
-              <input type="number" min="0" value={workoutProof.duration} onChange={e => setWorkoutProof({ ...workoutProof, duration: e.target.value })} placeholder="Minutes" />
-            </div>
-            <div className="form-grid">
-              <input type="number" min="1" max="10" value={workoutProof.effort} onChange={e => setWorkoutProof({ ...workoutProof, effort: e.target.value })} placeholder="Effort 1-10" />
-              <input type="number" min="0" value={workoutProof.sets} onChange={e => setWorkoutProof({ ...workoutProof, sets: e.target.value })} placeholder="Sets" />
-            </div>
-            <div className="form-grid">
-              <input type="number" min="0" value={workoutProof.reps} onChange={e => setWorkoutProof({ ...workoutProof, reps: e.target.value })} placeholder="Reps" />
-              <input type="number" min="0" value={workoutProof.weight} onChange={e => setWorkoutProof({ ...workoutProof, weight: e.target.value })} placeholder="Weight lifted" />
-            </div>
-            <input type="number" min="0" step="0.1" value={workoutProof.distance} onChange={e => setWorkoutProof({ ...workoutProof, distance: e.target.value })} placeholder="Distance miles, optional" />
-            <textarea value={workoutProof.notes} onChange={e => setWorkoutProof({ ...workoutProof, notes: e.target.value })} placeholder="What did you actually do?" />
-            <div className="kpi-score">Effort Score: {calculateEffortScore(workoutProof)}</div>
-            <button className="primary" disabled={Number(workoutProof.duration || 0) < 10 || Number(workoutProof.effort || 0) < 3 || calculateEffortScore(workoutProof) < 25}>Submit Workout Proof</button>
-            <button type="button" className="ghost" onClick={() => setWorkoutQuest(null)}>Cancel</button>
-          </form>
-        </div>
-      )}
-
-      {bodyQuest && (
-        <div className="modal-backdrop">
-          <form className="modal-card" onSubmit={submitBody}>
-            <p className="eyebrow">Body Progress Check-In</p>
-            <h3>{bodyQuest.title}</h3>
-            <p>Track the trend without obsessing over daily scale swings.</p>
-            <label>Goal</label>
-            <select value={bodyProof.goal} onChange={e => setBodyProof({ ...bodyProof, goal: e.target.value })}>
-              <option value="lose">Lose Weight</option>
-              <option value="muscle">Gain Muscle</option>
-              <option value="recomp">Recomposition</option>
-              <option value="maintain">Maintain</option>
-            </select>
-            <div className="form-grid">
-              <input type="number" min="0" step="0.1" value={bodyProof.weight} onChange={e => setBodyProof({ ...bodyProof, weight: e.target.value })} placeholder="Current weight" />
-              <input type="number" min="0" step="0.1" value={bodyProof.waist} onChange={e => setBodyProof({ ...bodyProof, waist: e.target.value })} placeholder="Waist optional" />
-            </div>
-            <textarea value={bodyProof.note} onChange={e => setBodyProof({ ...bodyProof, note: e.target.value })} placeholder="How is your body responding? Energy, clothes, strength, appetite..." />
-            <button className="primary" disabled={!bodyProof.weight}>Save Body Check-In</button>
-            <button type="button" className="ghost" onClick={() => setBodyQuest(null)}>Cancel</button>
-          </form>
-        </div>
-      )}
 
       {checkinQuest && (
         <div className="modal-backdrop">
@@ -557,16 +413,6 @@ function App() {
         </div>
       )}
     </main>
-  );
-}
-
-function KpiCard({ label, value, detail }) {
-  return (
-    <div className="stat-card kpi-card">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <p>{detail}</p>
-    </div>
   );
 }
 
