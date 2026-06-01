@@ -100,6 +100,149 @@ The Blueprint Codex represents:
 
 ---
 
+## Skill Tree: Foundation Protocol
+
+**Theme:** Productivity, discipline, project mastery, and system building.
+
+The Builder’s skill tree is called **Foundation Protocol**. It focuses on building sustainable systems, reducing friction, and turning repeated action into visible progress.
+
+The skill tree should visually feel like a cyber-fantasy blueprint: dark grid background, gold framework lines, cyan active nodes, glowing hex icons, and a central core.
+
+---
+
+## Foundation Tier
+
+**Levels:** 1–15  
+**Focus:** Core discipline and basic daily systems.
+
+### Blueprint Planning
+
+**Real-Life Trigger:** Plan the day, choose priority tasks, or create a project list.  
+**Gameplay Effect:** Highlights priority quests and gives bonus XP for completing the first priority task of the day.  
+**Visual Icon:** Blueprint tablet with grid lines.
+
+### Resource Allocation
+
+**Real-Life Trigger:** Complete planned work sessions or time blocks.  
+**Gameplay Effect:** Builds energy/momentum based on consistent routines.  
+**Visual Icon:** Rising bar chart or resource meter.
+
+### Structural Integrity
+
+**Real-Life Trigger:** Avoid distraction, complete focus sessions, or recover after missing a task.  
+**Gameplay Effect:** Reduces “Distraction Damage” and protects streak momentum.  
+**Visual Icon:** Building with shield.
+
+---
+
+## Framework Tier
+
+**Levels:** 16–30  
+**Focus:** Reusable systems, productivity loops, and scaling effort.
+
+### Modular Assembly
+
+**Real-Life Trigger:** Break a large project into smaller tasks.  
+**Gameplay Effect:** Gives XP bonuses when completing chained project steps.  
+**Visual Icon:** Interlocking modules or gear blocks.
+
+### Discipline Engine
+
+**Real-Life Trigger:** Complete a timed focus mode or deep work session.  
+**Gameplay Effect:** Activates a temporary productivity multiplier.  
+**Visual Icon:** Gear core or glowing engine.
+
+### Reinforcement Grid
+
+**Real-Life Trigger:** Complete a weekly review and recommit to existing routines.  
+**Gameplay Effect:** Strengthens previous habits and helps prevent regression.  
+**Visual Icon:** Reinforced grid frame.
+
+### Synergy Link
+
+**Real-Life Trigger:** Complete Builder quests that support another archetype, such as workout planning or creative project planning.  
+**Gameplay Effect:** Boosts related archetypes like Warrior, Scholar, Creator, Guardian, or Merchant.  
+**Visual Icon:** Connected nodes.
+
+---
+
+## Master Architect Tier
+
+**Levels:** 31–50  
+**Focus:** Long-term vision, automation, project mastery, and legacy creation.
+
+### Legacy Framework
+
+**Real-Life Trigger:** Complete recurring systems or long-term project frameworks.  
+**Gameplay Effect:** Completed projects continue contributing passive legacy progress.  
+**Visual Icon:** Golden structural frame.
+
+### Overclock Construction
+
+**Real-Life Trigger:** Complete a long deep work sprint or major project push.  
+**Gameplay Effect:** Grants a burst of XP and special construction visual effects.  
+**Visual Icon:** Rising structure with energy beam.
+
+### Eternal Blueprint
+
+**Real-Life Trigger:** Create a reusable template, checklist, plan, or system.  
+**Gameplay Effect:** Unlocks shareable project templates and team/family productivity tools.  
+**Visual Icon:** Floating blueprint file.
+
+### Ascendant Core
+
+**Real-Life Trigger:** Reach high Builder level and complete multiple major milestones.  
+**Gameplay Effect:** Full Builder synergy unlock. Improves all other archetype progression when Builder is highly leveled.  
+**Visual Icon:** Central glowing core.
+
+---
+
+## Skill Tree Node List
+
+Use this cleaned naming structure for the Builder tree:
+
+1. Blueprint Planning
+2. Resource Allocation
+3. Structural Integrity
+4. Modular Assembly
+5. Discipline Engine
+6. Reinforcement Grid
+7. Synergy Link
+8. Legacy Framework
+9. Overclock Construction
+10. Eternal Blueprint
+11. Ascendant Core
+
+---
+
+## Skill Tree Screen Notes
+
+The Builder skill tree screen should include:
+
+- Archetype name: The Builder
+- Tree name: Foundation Protocol
+- Current tier
+- Current Builder XP
+- Locked and unlocked nodes
+- Node requirements
+- Node descriptions
+- Visual path lines between skills
+- A central core node that glows brighter as the user progresses
+
+Example UI copy:
+
+```text
+Foundation Protocol
+The Builder
+
+Current Tier: Framework
+Builder XP: 2,450
+Next Unlock: Discipline Engine
+Requirement: Complete 5 focus sessions
+```
+
+---
+
 ## Male Builder Design
 
 ### Body / Build
@@ -444,6 +587,19 @@ src/assets/characters/builder/
     master-architect.png
     systems-maker.png
     project-closer.png
+  skill-tree/
+    foundation-protocol.png
+    blueprint-planning.png
+    resource-allocation.png
+    structural-integrity.png
+    modular-assembly.png
+    discipline-engine-node.png
+    reinforcement-grid.png
+    synergy-link.png
+    legacy-framework.png
+    overclock-construction.png
+    eternal-blueprint.png
+    ascendant-core.png
 ```
 
 ---
@@ -457,6 +613,10 @@ Use this prompt style when generating Builder concept art:
 For the female version:
 
 > Full body female mobile RPG character design, The Builder archetype, cyber-fantasy utility architect, athletic strong build, tailored utility jacket, reinforced shoulders, protective knee pads, tool belt with holographic tools, glowing blueprint tablet, dark tech-fabric outfit with metallic gold and warm amber accents, confident grounded stance, clean game asset style, high detail, transparent background.
+
+For the skill tree:
+
+> Cyber-fantasy mobile RPG skill tree screen, Foundation Protocol, The Builder archetype, dark blueprint grid background, gold framework lines, cyan glowing hexagonal nodes, central core node, icons for planning, resources, structural integrity, modular assembly, discipline engine, and legacy framework, clean futuristic UI, high detail.
 
 ---
 
