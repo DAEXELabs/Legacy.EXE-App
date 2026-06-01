@@ -67,6 +67,10 @@ Stage progression prompt:
 
 > Mobile RPG character progression sheet for The Warrior archetype, cyber-fantasy health and fitness hero, five stages from starter training clothes to Apex Titan, dark lightweight armor, neon blue and gold energy accents, Titan Hammer and Energy Blade unlocks, transparent or clean background, high detail game asset concept art.
 
+Skill tree prompt:
+
+> Cyber-fantasy mobile RPG skill tree screen, The Warrior, Vital Core Protocol, five progression columns from Awakened to Apex Titan, dark grid UI, gold and electric blue nodes, circular skill icons, central glowing vitality core, clean mobile game interface, high detail.
+
 ---
 
 ## Color Palette
@@ -126,116 +130,191 @@ It is ideal for users focused on cardio, mobility, martial arts, running, or ath
 
 ---
 
-# Skill Tree: Iron Protocol
+# Skill Tree: Vital Core Protocol
 
 **Theme:** Strength, consistency, stamina, recovery, and physical progression.
 
-The Warrior’s skill tree is called **Iron Protocol**. It turns real-world fitness actions into progression nodes.
+The Warrior’s skill tree is called **Vital Core Protocol**. It turns real-world fitness actions into progression nodes.
 
-The visual should feel like a cyber-fantasy training grid: dark background, blue power lines, gold unlocked nodes, and a central core shaped like a glowing forge.
+The skill tree is divided into five stages matching the character progression. Skills unlock progressively as users complete real-life fitness milestones such as workouts, step goals, strength sessions, recovery sessions, hydration, sleep, and personal records.
 
----
-
-## Foundation Tier
-
-**Levels:** 1–15  
-**Focus:** Starting movement and building baseline consistency.
-
-### First Rep
-
-**Real-Life Trigger:** Complete any workout or movement quest.  
-**Gameplay Effect:** Grants bonus XP for starting, especially after missed days.  
-**Visual Icon:** Glowing fist or first step.
-
-### Hydration Core
-
-**Real-Life Trigger:** Complete water intake goals.  
-**Gameplay Effect:** Adds energy recovery bonus.  
-**Visual Icon:** Water drop with energy ring.
-
-### Recovery Guard
-
-**Real-Life Trigger:** Log sleep, stretching, rest, or recovery.  
-**Gameplay Effect:** Protects against burnout and reduces streak pressure.  
-**Visual Icon:** Shield with pulse line.
+Blue and gold energy intensity should increase with each stage.
 
 ---
 
-## Conditioning Tier
+## Stage 0 Skill Tier: Awakened
 
-**Levels:** 16–30  
-**Focus:** Strength, endurance, and repeatable training systems.
+**Levels:** 1–10  
+**Focus:** Building the spark — consistency and basic vitality.
 
-### Strength Circuit
+### Core Ignition
 
-**Real-Life Trigger:** Complete strength training sessions.  
-**Gameplay Effect:** Increases Warrior XP bonus for workouts.  
-**Visual Icon:** Dumbbell or power core.
+**Type:** Active  
+**Real-Life Trigger:** Log daily movement, a walk, a short workout, or a beginner fitness action.  
+**Gameplay Effect:** Grants energy regeneration for the day and bonus XP for starting.  
+**Visual Icon:** Glowing arm or fist charged with blue fire.
 
-### Endurance Drive
+### Vital Flow
 
-**Real-Life Trigger:** Complete cardio, walking, running, cycling, or step goals.  
-**Gameplay Effect:** Builds stamina meter and grants streak bonuses.  
-**Visual Icon:** Forward arrow with pulse line.
+**Type:** Passive  
+**Real-Life Trigger:** Track sleep, hydration, nutrition, or recovery.  
+**Gameplay Effect:** Adds small recovery gains and supports health stat growth.  
+**Visual Icon:** Blue energy ring or flowing current.
 
-### Nutrition Forge
+### Resilience Frame
 
-**Real-Life Trigger:** Hit protein, meal prep, calorie, or nutrition goals.  
-**Gameplay Effect:** Boosts recovery and improves weekly boss progress.  
-**Visual Icon:** Flame over plate or protein core.
-
-### Discipline Form
-
-**Real-Life Trigger:** Complete scheduled workouts on planned days.  
-**Gameplay Effect:** Adds bonus XP for honoring the plan.  
-**Visual Icon:** Warrior stance silhouette.
+**Type:** Passive  
+**Real-Life Trigger:** Return after a missed day, complete recovery, or complete a light movement quest.  
+**Gameplay Effect:** Minor resistance to fatigue, guilt loops, and missed-day momentum loss.  
+**Visual Icon:** Blue shield frame.
 
 ---
 
-## Champion Tier
+## Stage 1 Skill Tier: Novice Warrior
 
-**Levels:** 31–50  
-**Focus:** Long-term strength, transformation, and identity.
+**Levels:** 11–20  
+**Focus:** Forming the armor — regular training and foundational strength.
 
-### Titan Mode
+### Power Surge
 
-**Real-Life Trigger:** Complete a major workout milestone or long training streak.  
-**Gameplay Effect:** Unlocks high-tier Warrior gear and aura effects.  
-**Visual Icon:** Titan Hammer with lightning.
+**Type:** Active  
+**Real-Life Trigger:** Complete a high-intensity set, workout finisher, or challenging movement session.  
+**Gameplay Effect:** Short burst XP bonus and temporary energy boost.  
+**Visual Icon:** Red-gold surge node.
 
-### Limit Break
+### Endurance Lattice
 
-**Real-Life Trigger:** Beat a personal record or complete a difficult challenge.  
-**Gameplay Effect:** Grants burst XP and unlock progress toward legendary items.  
-**Visual Icon:** Cracked energy barrier.
+**Type:** Passive  
+**Real-Life Trigger:** Complete longer cardio, walking, cycling, running, or sustained movement goals.  
+**Gameplay Effect:** Builds stamina meter and improves weekly consistency bonuses.  
+**Visual Icon:** Green stamina lattice.
 
-### Battle Rhythm
+### Adaptive Form
 
-**Real-Life Trigger:** Complete workouts consistently across multiple weeks.  
-**Gameplay Effect:** Multiplies XP for stable weekly training patterns.  
-**Visual Icon:** Circular rhythm ring.
+**Type:** Passive  
+**Real-Life Trigger:** Complete mobility, stretching, form practice, or controlled training.  
+**Gameplay Effect:** Improves recovery and reduces burnout risk.  
+**Visual Icon:** Cyan form correction node.
 
-### Ascendant Warrior Core
+---
 
-**Real-Life Trigger:** Reach high Warrior level and complete multiple health milestones.  
-**Gameplay Effect:** Full Warrior synergy unlock. Boosts Builder, Guardian, and Discipline-related progression.  
-**Visual Icon:** Central forge core.
+## Stage 2 Skill Tier: Conditioned Warrior
+
+**Levels:** 21–30  
+**Focus:** Reinforcement — progressive overload and consistency.
+
+### Battlefield Prowess
+
+**Type:** Active  
+**Real-Life Trigger:** Complete strength training, heavy lifts, bodyweight progressions, or resistance sessions.  
+**Gameplay Effect:** Grants bonus Warrior XP and progress toward Titan Hammer upgrades.  
+**Visual Icon:** Warrior with hammer and shield.
+
+### Combat Reflexes
+
+**Type:** Passive  
+**Real-Life Trigger:** Maintain recovery, warmups, cooldowns, and consistent training rhythm.  
+**Gameplay Effect:** Faster recovery between sessions and improved streak protection.  
+**Visual Icon:** Speed silhouette with blue motion streaks.
+
+### Muscle Memory
+
+**Type:** Passive  
+**Real-Life Trigger:** Repeat the same workout plan or movement pattern consistently.  
+**Gameplay Effect:** Streak bonuses scale as repeated routines become more stable.  
+**Visual Icon:** Warrior silhouette with echo image.
+
+### Synergy Strike
+
+**Type:** Hybrid  
+**Real-Life Trigger:** Combine Warrior actions with Builder planning, Scholar learning, or Guardian family activity.  
+**Gameplay Effect:** Grants hybrid XP and unlocks cross-archetype titles.  
+**Visual Icon:** Two connected blades or crossed energy paths.
+
+---
+
+## Stage 3 Skill Tier: Elite Warrior
+
+**Levels:** 31–40  
+**Focus:** Mastery — optimization, leadership, and durable identity.
+
+### Tactical Breathing
+
+**Type:** Active  
+**Real-Life Trigger:** Complete breathing practice, cooldown, controlled reps, or focus work before training.  
+**Gameplay Effect:** Improves focus and grants bonus XP for difficult workouts.  
+**Visual Icon:** Breath canister or pulse icon.
+
+### Legacy Forge
+
+**Type:** Passive  
+**Real-Life Trigger:** Share a workout plan, encourage someone else, or complete a long-term training milestone.  
+**Gameplay Effect:** Builds legacy progress and supports team/family motivation features.  
+**Visual Icon:** Hammer over forge.
+
+### Eternal Vitality
+
+**Type:** Passive  
+**Real-Life Trigger:** Maintain long-term health streaks across sleep, hydration, movement, and recovery.  
+**Gameplay Effect:** Adds durable health bonuses and reduces burnout penalties.  
+**Visual Icon:** Blue-gold vitality core.
+
+### Warrior’s Call
+
+**Type:** Hybrid  
+**Real-Life Trigger:** Invite, encourage, or complete an activity with another person.  
+**Gameplay Effect:** Motivational aura that boosts Guardian, Builder, and social accountability features.  
+**Visual Icon:** Sword or banner signal.
+
+---
+
+## Stage 4 Skill Tier: Apex Titan
+
+**Levels:** 41–50+  
+**Focus:** Transcendence — peak performance and lasting legacy.
+
+### Titan Overload
+
+**Type:** Ultimate Active  
+**Real-Life Trigger:** Complete peak challenges, personal records, competitions, transformation milestones, or major weekly boss victories.  
+**Gameplay Effect:** Massive temporary XP boost, legendary visual effects, and Titan Hammer evolution.  
+**Visual Icon:** Golden silhouette overloaded with energy.
+
+### Ascendant Warrior
+
+**Type:** Ultimate Passive  
+**Real-Life Trigger:** Reach high Warrior level and complete multiple long-term health milestones.  
+**Gameplay Effect:** Permanent aura, advanced all-stat synergy, and legendary Warrior identity unlock.  
+**Visual Icon:** Ascendant armored figure.
+
+### Immortal Core
+
+**Type:** Passive  
+**Real-Life Trigger:** Sustain mastery-level consistency across training, recovery, nutrition, and rest.  
+**Gameplay Effect:** High-level recovery protection and inspiration field for others.  
+**Visual Icon:** Radiant blue-gold core.
 
 ---
 
 ## Skill Tree Node List
 
-1. First Rep
-2. Hydration Core
-3. Recovery Guard
-4. Strength Circuit
-5. Endurance Drive
-6. Nutrition Forge
-7. Discipline Form
-8. Titan Mode
-9. Limit Break
-10. Battle Rhythm
-11. Ascendant Warrior Core
+1. Core Ignition
+2. Vital Flow
+3. Resilience Frame
+4. Power Surge
+5. Endurance Lattice
+6. Adaptive Form
+7. Battlefield Prowess
+8. Combat Reflexes
+9. Muscle Memory
+10. Synergy Strike
+11. Tactical Breathing
+12. Legacy Forge
+13. Eternal Vitality
+14. Warrior’s Call
+15. Titan Overload
+16. Ascendant Warrior
+17. Immortal Core
 
 ---
 
@@ -312,9 +391,9 @@ The Warrior progression should visibly map real-life health and fitness mileston
 - Habit formation
 
 **Skills Unlocked:**
-- First Rep
 - Core Ignition
-- Basic Vital Flow
+- Vital Flow
+- Resilience Frame
 
 **Theme:**
 
@@ -340,10 +419,9 @@ The Warrior progression should visibly map real-life health and fitness mileston
 - Early hydration and recovery consistency
 
 **Skills Unlocked:**
-- Resilience Frame
 - Power Surge
-- Hydration Core
-- Recovery Guard
+- Endurance Lattice
+- Adaptive Form
 
 **Weapon Unlock:**
 - Basic Energy Blade
@@ -372,10 +450,10 @@ The Warrior progression should visibly map real-life health and fitness mileston
 - Improved nutrition habits
 
 **Skills Unlocked:**
-- Endurance Lattice
-- Adaptive Form
+- Battlefield Prowess
+- Combat Reflexes
+- Muscle Memory
 - Synergy Strike
-- Nutrition Forge
 
 **Weapon Unlock:**
 - Titan Hammer basic form
@@ -404,10 +482,10 @@ The Warrior progression should visibly map real-life health and fitness mileston
 - Long-term training identity established
 
 **Skills Unlocked:**
-- Battlefield Prowess
-- Combat Reflexes
+- Tactical Breathing
 - Legacy Forge
-- Battle Rhythm
+- Eternal Vitality
+- Warrior’s Call
 
 **Theme:**
 
@@ -435,8 +513,8 @@ The Warrior progression should visibly map real-life health and fitness mileston
 
 **Skills Unlocked:**
 - Titan Overload
-- Eternal Vitality
-- Ascendant Warrior Core
+- Ascendant Warrior
+- Immortal Core
 
 **Theme:**
 
@@ -739,18 +817,24 @@ src/assets/characters/warrior/
     titan-discipline.png
     limit-breaker.png
   skill-tree/
-    iron-protocol.png
-    first-rep.png
-    hydration-core.png
-    recovery-guard.png
-    strength-circuit.png
-    endurance-drive.png
-    nutrition-forge.png
-    discipline-form.png
-    titan-mode.png
-    limit-break.png
-    battle-rhythm.png
-    ascendant-warrior-core.png
+    vital-core-protocol.png
+    core-ignition.png
+    vital-flow.png
+    resilience-frame.png
+    power-surge.png
+    endurance-lattice.png
+    adaptive-form.png
+    battlefield-prowess.png
+    combat-reflexes.png
+    muscle-memory.png
+    synergy-strike.png
+    tactical-breathing.png
+    legacy-forge.png
+    eternal-vitality.png
+    warriors-call.png
+    titan-overload.png
+    ascendant-warrior.png
+    immortal-core.png
 ```
 
 ---
