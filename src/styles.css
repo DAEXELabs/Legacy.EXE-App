@@ -84,6 +84,16 @@ input, select { width: 100%; border: 1px solid rgba(255,255,255,.12); border-rad
 .victory-rewards div { padding: 12px; border-radius: 16px; background: rgba(0,0,0,.2); border: 1px solid rgba(255,255,255,.09); }
 .victory-rewards strong { display: block; color: #f6c65b; margin-bottom: 4px; }
 .victory-rewards span { color: #b9c1d9; font-size: .82rem; }
+.chronicle-hero { background: radial-gradient(circle at top left, rgba(141,108,255,.26), transparent 40%), rgba(255,255,255,.075); }
+.chronicle-feed { display: grid; gap: 12px; }
+.chronicle-post { display: grid; gap: 10px; padding: 14px; border-radius: 20px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.09); }
+.chronicle-post-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.chronicle-type { color: #f6c65b; font-size: .75rem; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+.chronicle-date { color: #7f8caf; font-size: .72rem; white-space: nowrap; }
+.chronicle-post p { margin: 0; }
+.chronicle-image { width: 100%; max-height: 240px; object-fit: cover; border-radius: 18px; border: 1px solid rgba(255,255,255,.1); background: rgba(0,0,0,.25); }
+.chronicle-reward { display: inline-flex; width: fit-content; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 999px; background: rgba(246,198,91,.12); color: #f6c65b; font-size: .76rem; font-weight: 900; }
+.empty-state { padding: 18px; border-radius: 20px; background: rgba(0,0,0,.18); border: 1px dashed rgba(255,255,255,.16); text-align: center; }
 @keyframes victory-spin { to { transform: rotate(360deg); } }
 @media (max-width: 460px) {
   .app-shell { padding: 0; }
