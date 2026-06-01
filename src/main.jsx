@@ -219,6 +219,15 @@ const starterState = {
   dailyReflections: {},
   chroniclePosts: [],
   bossArchive: [],
+  readingGoal: {
+    currentBook: '',
+    monthlyBooksTarget: 2,
+    monthlyChaptersTarget: 12,
+    booksCompleted: 0,
+    chaptersCompleted: 0,
+    pagesRead: 0,
+    readingLogs: [],
+  },
   stats: {
     health: 0,
     knowledge: 0,
@@ -491,6 +500,11 @@ function App() {
         dailyReflections: parsed.dailyReflections || {},
         chroniclePosts: parsed.chroniclePosts || [],
         bossArchive: parsed.bossArchive || [],
+        readingGoal: {
+          ...starterState.readingGoal,
+          ...(parsed.readingGoal || {}),
+          readingLogs: parsed.readingGoal?.readingLogs || [],
+        },
       };
     } catch {
       return starterState;
@@ -507,6 +521,12 @@ function App() {
 
   const [tab, setTab] = useState('home');
   const [dailyReflection, setDailyReflection] = useState('');
+  const [readingDraft, setReadingDraft] = useState({
+    currentBook: state.readingGoal?.currentBook || '',
+    chapters: '',
+    pages: '',
+    completedBook: false,
+  });
   const [chronicleDraft, setChronicleDraft] = useState({
     type: 'Physical Progress',
     caption: '',
@@ -566,6 +586,19 @@ function App() {
     .reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
 
   const strongestStat = Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0];
+  const readingGoal = state.readingGoal || starterState.readingGoal;
+  const booksProgress = Math.min(
+    100,
+    Math.round((Number(readingGoal.booksCompleted || 0) / Math.max(Number(readingGoal.monthlyBooksTarget || 1), 1)) * 100)
+  );
+  const chaptersProgress = Math.min(
+    100,
+    Math.round((Number(readingGoal.chaptersCompleted || 0) / Math.max(Number(readingGoal.monthlyChaptersTarget || 1), 1)) * 100)
+  );
+  const readingXpEarned = (readingGoal.readingLogs || []).reduce(
+    (sum, log) => sum + Number(log.xp || 0),
+    0
+  );
   const savedReflection = state.dailyReflections?.[todayKey()] || '';
 
   const driftMessage =
@@ -719,6 +752,63 @@ function App() {
     }));
 
     setDailyReflection('');
+  }
+
+  function logReadingProgress(e) {
+    e.preventDefault();
+
+    const chapters = Number(readingDraft.chapters || 0);
+    const pages = Number(readingDraft.pages || 0);
+    const currentBook = readingDraft.currentBook.trim();
+
+    if (!currentBook || (chapters <= 0 && pages <= 0 && !readingDraft.completedBook)) return;
+
+    const xpEarned =
+      chapters * 15 +
+      Math.floor(pages / 5) * 5 +
+      (readingDraft.completedBook ? 100 : 0);
+
+    setState(prev => {
+      const { nextXp, nextLevel, rewards } = applyXpProgress(prev, xpEarned);
+
+      return {
+        ...prev,
+        xp: nextXp,
+        level: nextLevel,
+        rewards,
+        stats: {
+          ...prev.stats,
+          knowledge: prev.stats.knowledge + Math.max(1, chapters + (readingDraft.completedBook ? 3 : 0)),
+        },
+        readingGoal: {
+          ...(prev.readingGoal || starterState.readingGoal),
+          currentBook,
+          chaptersCompleted: Number(prev.readingGoal?.chaptersCompleted || 0) + chapters,
+          pagesRead: Number(prev.readingGoal?.pagesRead || 0) + pages,
+          booksCompleted:
+            Number(prev.readingGoal?.booksCompleted || 0) + (readingDraft.completedBook ? 1 : 0),
+          readingLogs: [
+            {
+              id: crypto.randomUUID(),
+              book: currentBook,
+              chapters,
+              pages,
+              completedBook: readingDraft.completedBook,
+              xp: xpEarned,
+              date: new Date().toISOString(),
+            },
+            ...((prev.readingGoal?.readingLogs) || []),
+          ],
+        },
+      };
+    });
+
+    setReadingDraft({
+      currentBook,
+      chapters: '',
+      pages: '',
+      completedBook: false,
+    });
   }
 
   function addChroniclePost(e) {
@@ -890,7 +980,7 @@ function App() {
         </header>
 
         <nav className="tabs">
-          {['home', 'quests', 'compile', 'chronicle', 'character', 'boss'].map(item => (
+          {['home', 'quests', 'compile', 'reading', 'chronicle', 'character', 'boss'].map(item => (
             <button
               key={item}
               onClick={() => setTab(item)}
@@ -1043,6 +1133,161 @@ function App() {
                 Save Daily Compile
               </button>
             </form>
+          </section>
+        )}
+
+        {tab === 'reading' && (
+          <section className="screen-stack">
+            <div className="boss-card">
+              <p className="eyebrow">Reading Campaign</p>
+              <h2>Build the Knowledge stat.</h2>
+              <p>
+                Track books, chapters, and pages. Reading progress earns XP and strengthens your Knowledge path.
+              </p>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-card">
+                <Brain size={20} />
+                <span>Books Completed</span>
+                <strong>
+                  {readingGoal.booksCompleted}/{readingGoal.monthlyBooksTarget}
+                </strong>
+              </div>
+
+              <div className="stat-card">
+                <MessageSquareText size={20} />
+                <span>Chapters Completed</span>
+                <strong>
+                  {readingGoal.chaptersCompleted}/{readingGoal.monthlyChaptersTarget}
+                </strong>
+              </div>
+
+              <div className="stat-card">
+                <Sparkles size={20} />
+                <span>Reading XP</span>
+                <strong>{readingXpEarned}</strong>
+              </div>
+
+              <div className="stat-card">
+                <Brain size={20} />
+                <span>Pages Read</span>
+                <strong>{readingGoal.pagesRead}</strong>
+              </div>
+            </div>
+
+            <div className="xp-card">
+              <div className="row-between">
+                <span>Monthly Book Goal</span>
+                <strong>{booksProgress}%</strong>
+              </div>
+              <div className="progress-track">
+                <div className="progress-fill" style={{ width: `${booksProgress}%` }} />
+              </div>
+            </div>
+
+            <div className="xp-card">
+              <div className="row-between">
+                <span>Monthly Chapter Goal</span>
+                <strong>{chaptersProgress}%</strong>
+              </div>
+              <div className="progress-track">
+                <div className="progress-fill boss" style={{ width: `${chaptersProgress}%` }} />
+              </div>
+            </div>
+
+            <form className="form-card" onSubmit={logReadingProgress}>
+              <h3>Log Reading Progress</h3>
+
+              <input
+                value={readingDraft.currentBook}
+                onChange={e =>
+                  setReadingDraft({ ...readingDraft, currentBook: e.target.value })
+                }
+                placeholder="Current book"
+              />
+
+              <div className="form-grid">
+                <input
+                  type="number"
+                  min="0"
+                  value={readingDraft.chapters}
+                  onChange={e =>
+                    setReadingDraft({ ...readingDraft, chapters: e.target.value })
+                  }
+                  placeholder="Chapters read"
+                />
+
+                <input
+                  type="number"
+                  min="0"
+                  value={readingDraft.pages}
+                  onChange={e =>
+                    setReadingDraft({ ...readingDraft, pages: e.target.value })
+                  }
+                  placeholder="Pages read"
+                />
+              </div>
+
+              <label className="reward unlocked">
+                <CheckCircle2 />
+                <div>
+                  <strong>Completed the book?</strong>
+                  <p>Adds a 100 XP completion bonus.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={readingDraft.completedBook}
+                  onChange={e =>
+                    setReadingDraft({ ...readingDraft, completedBook: e.target.checked })
+                  }
+                />
+              </label>
+
+              <button
+                className="primary"
+                disabled={
+                  !readingDraft.currentBook.trim() ||
+                  (
+                    Number(readingDraft.chapters || 0) <= 0 &&
+                    Number(readingDraft.pages || 0) <= 0 &&
+                    !readingDraft.completedBook
+                  )
+                }
+              >
+                <Plus size={18} /> Log Reading XP
+              </button>
+            </form>
+
+            <div className="quest-list">
+              <div className="row-between">
+                <h3>Reading Log</h3>
+                <span className="proof-badge">
+                  {(readingGoal.readingLogs || []).length} Entries
+                </span>
+              </div>
+
+              {(readingGoal.readingLogs || []).length === 0 && (
+                <div className="empty-state">
+                  <p>No reading logged yet.</p>
+                  <strong>Your next chapter starts the campaign.</strong>
+                </div>
+              )}
+
+              {(readingGoal.readingLogs || []).map(log => (
+                <div className="reward unlocked" key={log.id}>
+                  <Brain />
+                  <div>
+                    <strong>{log.book}</strong>
+                    <p>
+                      {log.chapters} chapters • {log.pages} pages • {new Date(log.date).toLocaleDateString()}
+                    </p>
+                    {log.completedBook && <p>Book completed.</p>}
+                  </div>
+                  <span>+{log.xp} XP</span>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 
@@ -1303,6 +1548,29 @@ function App() {
                   </div>
                 );
               })}
+            </div>
+
+            <div className="quest-list">
+              <div className="row-between">
+                <h3>Reading Campaign</h3>
+                <span className="proof-badge">{booksProgress}% Books</span>
+              </div>
+
+              <div className="profile-proof-list">
+                <article className="profile-proof-card">
+                  <div className="row-between">
+                    <span className="chronicle-type">Current Book</span>
+                    <span className="chronicle-date">{readingGoal.pagesRead} pages</span>
+                  </div>
+                  <h4>{readingGoal.currentBook || 'No book selected yet'}</h4>
+                  <p>
+                    {readingGoal.booksCompleted}/{readingGoal.monthlyBooksTarget} books • {readingGoal.chaptersCompleted}/{readingGoal.monthlyChaptersTarget} chapters
+                  </p>
+                  <div className="chronicle-reward">
+                    <Brain size={14} /> {readingXpEarned} Reading XP
+                  </div>
+                </article>
+              </div>
             </div>
 
             <div className="quest-list">
