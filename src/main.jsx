@@ -366,6 +366,90 @@ function calculateEffortScore(log) {
   );
 }
 
+function getWorkoutTier(level) {
+  if (level <= 5) {
+    return {
+      name: 'Initiate',
+      intensity: 'Foundation',
+      target: 'Learn form and finish clean.',
+      exercises: [
+        { name: 'Pushups', sets: 2, reps: 8, weight: 'Bodyweight' },
+        { name: 'Bodyweight Squats', sets: 2, reps: 10, weight: 'Bodyweight' },
+        { name: 'Plank', sets: 2, reps: '20 sec', weight: 'Bodyweight' },
+      ],
+    };
+  }
+
+  if (level <= 15) {
+    return {
+      name: 'Builder',
+      intensity: 'Structured',
+      target: 'More volume, more consistency.',
+      exercises: [
+        { name: 'Pushups', sets: 3, reps: 12, weight: 'Bodyweight' },
+        { name: 'Squats', sets: 3, reps: 15, weight: 'Bodyweight or light dumbbell' },
+        { name: 'Dumbbell Rows', sets: 3, reps: 10, weight: 'Moderate' },
+        { name: 'Plank', sets: 3, reps: '30 sec', weight: 'Bodyweight' },
+      ],
+    };
+  }
+
+  if (level <= 30) {
+    return {
+      name: 'Warrior',
+      intensity: 'Weighted',
+      target: 'Push strength and conditioning.',
+      exercises: [
+        { name: 'Goblet Squat', sets: 4, reps: 10, weight: 'Moderate-heavy' },
+        { name: 'Pushups or Bench Press', sets: 4, reps: 12, weight: 'Moderate' },
+        { name: 'Dumbbell Rows', sets: 4, reps: 12, weight: 'Moderate-heavy' },
+        { name: 'Lunges', sets: 3, reps: '12 each leg', weight: 'Moderate' },
+        { name: 'Plank', sets: 3, reps: '45 sec', weight: 'Bodyweight' },
+      ],
+    };
+  }
+
+  if (level <= 50) {
+    return {
+      name: 'Ascendant',
+      intensity: 'High Output',
+      target: 'Volume, supersets, and a finisher.',
+      exercises: [
+        { name: 'Squat or Leg Press', sets: 4, reps: 10, weight: 'Heavy' },
+        { name: 'Press Movement', sets: 4, reps: 10, weight: 'Heavy' },
+        { name: 'Row Movement', sets: 4, reps: 12, weight: 'Heavy' },
+        { name: 'Romanian Deadlift', sets: 4, reps: 10, weight: 'Moderate-heavy' },
+        { name: 'Core Circuit', sets: 4, reps: '45 sec', weight: 'Bodyweight' },
+        { name: 'Finisher', sets: 1, reps: '5 min AMRAP', weight: 'Conditioning' },
+      ],
+    };
+  }
+
+  return {
+    name: 'Legacy',
+    intensity: 'Elite',
+    target: 'Advanced volume. No empty reps.',
+    exercises: [
+      { name: 'Compound Lower Body', sets: 5, reps: 8, weight: 'Heavy' },
+      { name: 'Compound Upper Push', sets: 5, reps: 8, weight: 'Heavy' },
+      { name: 'Compound Pull', sets: 5, reps: 10, weight: 'Heavy' },
+      { name: 'Accessory Superset', sets: 4, reps: 12, weight: 'Moderate-heavy' },
+      { name: 'Core Finisher', sets: 4, reps: '60 sec', weight: 'Bodyweight' },
+      { name: 'Conditioning Finisher', sets: 1, reps: '8 min AMRAP', weight: 'Conditioning' },
+    ],
+  };
+}
+
+function getRegimenTotals(regimen) {
+  return regimen.exercises.reduce(
+    (total, exercise) => ({
+      sets: total.sets + Number(exercise.sets || 0),
+      exercises: total.exercises + 1,
+    }),
+    { sets: 0, exercises: 0 }
+  );
+}
+
 function applyXpProgress(prev, xpAmount) {
   let nextXp = prev.xp + Number(xpAmount);
   let nextLevel = prev.level;
@@ -442,6 +526,9 @@ function App() {
     reps: 60,
     notes: '',
   });
+
+  const workoutRegimen = getWorkoutTier(state.level);
+  const workoutTotals = getRegimenTotals(workoutRegimen);
 
   const [profileDraft, setProfileDraft] = useState({
     playerName: '',
@@ -588,6 +675,10 @@ function App() {
       workoutLog: {
         ...workoutProof,
         effortScore,
+        regimen: workoutRegimen.name,
+        regimenIntensity: workoutRegimen.intensity,
+        targetExercises: workoutTotals.exercises,
+        targetSets: workoutTotals.sets,
         date: todayKey(),
       },
     });
@@ -1186,6 +1277,11 @@ function App() {
               </div>
 
               <div className="profile-metric">
+                <span>Workout Tier</span>
+                <strong>{workoutRegimen.name}</strong>
+              </div>
+
+              <div className="profile-metric">
                 <span>Bosses Defeated</span>
                 <strong>{(state.bossArchive || []).length}</strong>
               </div>
@@ -1418,6 +1514,27 @@ function App() {
             <p>
               Log measurable effort before XP unlocks. Minimum: 10 minutes, effort 3+, score 25+.
             </p>
+
+            <div className="codex-card">
+              <p className="eyebrow">
+                Level {state.level} Regimen • {workoutRegimen.name}
+              </p>
+              <h3>{workoutRegimen.intensity} Workout</h3>
+              <p>{workoutRegimen.target}</p>
+
+              {workoutRegimen.exercises.map(exercise => (
+                <div className="codex-row" key={exercise.name}>
+                  <strong>{exercise.name}</strong>
+                  <p>
+                    {exercise.sets} sets x {exercise.reps} • {exercise.weight}
+                  </p>
+                </div>
+              ))}
+
+              <div className="chronicle-reward">
+                <Dumbbell size={14} /> Target: {workoutTotals.exercises} exercises / {workoutTotals.sets} total sets
+              </div>
+            </div>
 
             <div className="form-grid">
               <select
