@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   RotateCcw,
   Flame,
+  Skull,
   Sparkles,
   Timer,
   MessageSquareText,
@@ -314,9 +315,9 @@ function calculateEffortScore(log) {
 
   return Math.round(
     duration +
-      effort * 5 +
-      sets * 2 +
-      Math.floor(reps / 10)
+    effort * 5 +
+    sets * 2 +
+    Math.floor(reps / 10)
   );
 }
 
@@ -939,16 +940,12 @@ function App() {
               <div className="boss-avatar">
                 <span className="boss-icon">{weeklyBoss.icon}</span>
               </div>
-
               <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
               <h2>{weeklyBoss.name}</h2>
-
               <p className="boss-meta">
                 {weeklyBoss.archetype} • Domain: {weeklyBoss.domain}
               </p>
-
               <p>{weeklyBoss.description}</p>
-
               <p>
                 <strong>Weakness:</strong> {weeklyBoss.weakness}
               </p>
@@ -970,71 +967,14 @@ function App() {
               </div>
 
               <p>{driftMessage}</p>
-
               <div className="progress-track">
                 <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
               </div>
-
               <strong>
                 {bossProgress >= 100
                   ? 'Victory State Unlocked'
                   : `${100 - bossProgress}% HP Remaining`}
               </strong>
-            </div>
-
-            {bossProgress >= 100 && (
-              <div className="victory-card">
-                <div className="victory-burst">✦</div>
-
-                <p className="eyebrow">Boss Defeated</p>
-                <h2>{weeklyBoss.name} Has Fallen</h2>
-
-                <p>{weeklyBoss.victory}</p>
-
-                <div className="victory-rewards">
-                  <div>
-                    <strong>+ Legacy Proof</strong>
-                    <span>Today became evidence.</span>
-                  </div>
-
-                  <div>
-                    <strong>+ Discipline Evidence</strong>
-                    <span>You completed the required actions.</span>
-                  </div>
-
-                  <div>
-                    <strong>+ Weekly Victory Recorded</strong>
-                    <span>This boss no longer owns today.</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="quest-list">
-              <div className="row-between">
-                <h3>Boss Archive</h3>
-                <span className="proof-badge">{BOSSES.length} Enemies</span>
-              </div>
-
-              <div className="boss-archive-grid">
-                {BOSSES.map(boss => {
-                  const isActive = boss.name === weeklyBoss.name;
-
-                  return (
-                    <button
-                      type="button"
-                      key={boss.name}
-                      className={`archive-boss ${isActive ? 'active' : ''}`}
-                      title={`${boss.name} - ${boss.domain}`}
-                    >
-                      <span className="archive-boss-icon">{boss.icon}</span>
-                      <strong>{boss.name}</strong>
-                      <small>{boss.domain}</small>
-                      {isActive && <em>Active</em>}
-                    </button>
-                  );
-                })}
-              </div>
             </div>
 
             <div className="quest-list">
