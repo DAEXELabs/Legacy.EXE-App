@@ -218,6 +218,7 @@ const starterState = {
   workoutLogs: [],
   dailyReflections: {},
   chroniclePosts: [],
+  bossArchive: [],
   stats: {
     health: 0,
     knowledge: 0,
@@ -397,6 +398,7 @@ function App() {
         workoutLogs: parsed.workoutLogs || [],
         dailyReflections: parsed.dailyReflections || {},
         chroniclePosts: parsed.chroniclePosts || [],
+        bossArchive: parsed.bossArchive || [],
       };
     } catch {
       return starterState;
@@ -455,6 +457,10 @@ function App() {
   const bossDamage = getBossDamage(state.quests, state.chroniclePosts || []);
   const bossProgress = getBossProgress(weeklyBoss, state.quests, state.chroniclePosts || []);
   const bossHpRemaining = Math.max(0, weeklyBoss.hp - bossDamage);
+  const bossDefeated = bossProgress >= 100;
+  const isBossArchived = (state.bossArchive || []).some(
+    entry => entry.name === weeklyBoss.name && entry.week === weeklyBoss.week
+  );
   const tier = computeTier(state.level);
   const completedToday = state.quests.filter(q => q.completedToday).length;
 
@@ -649,6 +655,29 @@ function App() {
       caption: '',
       imageUrl: '',
     });
+  }
+
+  function archiveBossVictory() {
+    if (!bossDefeated || isBossArchived) return;
+
+    setState(prev => ({
+      ...prev,
+      bossArchive: [
+        {
+          id: crypto.randomUUID(),
+          name: weeklyBoss.name,
+          icon: weeklyBoss.icon,
+          domain: weeklyBoss.domain,
+          archetype: weeklyBoss.archetype,
+          week: weeklyBoss.week,
+          hp: weeklyBoss.hp,
+          damageDealt: bossDamage,
+          victory: weeklyBoss.victory,
+          defeatedAt: new Date().toISOString(),
+        },
+        ...(prev.bossArchive || []),
+      ],
+    }));
   }
 
   function addQuest(e) {
@@ -1137,6 +1166,11 @@ function App() {
                 <span>Workout Logs</span>
                 <strong>{(state.workoutLogs || []).length}</strong>
               </div>
+
+              <div className="profile-metric">
+                <span>Bosses Defeated</span>
+                <strong>{(state.bossArchive || []).length}</strong>
+              </div>
             </div>
 
             <div className="stats-grid">
@@ -1255,6 +1289,18 @@ function App() {
                   ? 'Victory State Unlocked'
                   : `${bossHpRemaining} HP Remaining`}
               </strong>
+
+              {bossDefeated && !isBossArchived && (
+                <button className="primary" onClick={archiveBossVictory}>
+                  <Trophy size={18} /> Archive Victory
+                </button>
+              )}
+
+              {isBossArchived && (
+                <div className="chronicle-reward">
+                  <Trophy size={14} /> Victory Archived
+                </div>
+              )}
             </div>
 
             <div className="quest-list">
@@ -1288,6 +1334,38 @@ function App() {
                 </div>
                 <span>{state.streak >= 3 ? 'Done' : 'Pending'}</span>
               </div>
+            </div>
+
+            <div className="quest-list">
+              <div className="row-between">
+                <h3>Boss Archive</h3>
+                <span className="proof-badge">
+                  {(state.bossArchive || []).length} Defeated
+                </span>
+              </div>
+
+              {(state.bossArchive || []).length === 0 && (
+                <div className="empty-state">
+                  <p>No bosses archived yet.</p>
+                  <strong>Defeat a weekly boss to begin the campaign record.</strong>
+                </div>
+              )}
+
+              {(state.bossArchive || []).map(entry => (
+                <div className="reward unlocked" key={entry.id}>
+                  <span className="boss-mini-icon">{entry.icon}</span>
+                  <div>
+                    <strong>{entry.name}</strong>
+                    <p>
+                      {entry.domain} • Week {entry.week} •{' '}
+                      {new Date(entry.defeatedAt).toLocaleDateString()}
+                    </p>
+                    <p>{entry.damageDealt} damage dealt / {entry.hp} HP</p>
+                    <p>{entry.victory}</p>
+                  </div>
+                  <span>Defeated</span>
+                </div>
+              ))}
             </div>
 
             <button className="danger" onClick={resetApp}>
