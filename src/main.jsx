@@ -344,6 +344,14 @@ function getBossProgress(boss, quests, chroniclePosts = []) {
   return Math.min(100, Math.round((damage / boss.hp) * 100));
 }
 
+function getStreakMultiplier(streak = 0) {
+  if (streak >= 30) return 2;
+  if (streak >= 14) return 1.5;
+  if (streak >= 7) return 1.25;
+  if (streak >= 3) return 1.1;
+  return 1;
+}
+
 function calculateEffortScore(log) {
   const duration = Number(log.duration || 0);
   const effort = Number(log.effort || 0);
@@ -454,8 +462,10 @@ function App() {
   const weeklyBoss = getWeeklyBoss();
   const currentLevelXp = xpForLevel(state.level);
   const progress = Math.min(100, Math.round((state.xp / currentLevelXp) * 100));
-  const bossDamage = getBossDamage(state.quests, state.chroniclePosts || []);
-  const bossProgress = getBossProgress(weeklyBoss, state.quests, state.chroniclePosts || []);
+  const baseBossDamage = getBossDamage(state.quests, state.chroniclePosts || []);
+  const streakMultiplier = getStreakMultiplier(state.streak);
+  const bossDamage = Math.round(baseBossDamage * streakMultiplier);
+  const bossProgress = Math.min(100, Math.round((bossDamage / weeklyBoss.hp) * 100));
   const bossHpRemaining = Math.max(0, weeklyBoss.hp - bossDamage);
   const bossDefeated = bossProgress >= 100;
   const isBossArchived = (state.bossArchive || []).some(
@@ -672,6 +682,8 @@ function App() {
           week: weeklyBoss.week,
           hp: weeklyBoss.hp,
           damageDealt: bossDamage,
+          baseDamage: baseBossDamage,
+          multiplier: streakMultiplier,
           victory: weeklyBoss.victory,
           defeatedAt: new Date().toISOString(),
         },
@@ -840,7 +852,7 @@ function App() {
                 <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
               </div>
               <small>
-                {bossDamage} damage dealt • {bossHpRemaining}/{weeklyBoss.hp} HP remaining
+                {bossDamage} damage dealt • {bossHpRemaining}/{weeklyBoss.hp} HP remaining • {streakMultiplier}x streak
               </small>
             </div>
 
@@ -894,6 +906,12 @@ function App() {
                 <Sparkles size={20} />
                 <span>XP Earned Today</span>
                 <strong>{dailyXpEarned}</strong>
+              </div>
+
+              <div className="stat-card">
+                <Flame size={20} />
+                <span>Streak Multiplier</span>
+                <strong>{streakMultiplier}x</strong>
               </div>
 
               <div className="stat-card">
@@ -1171,6 +1189,11 @@ function App() {
                 <span>Bosses Defeated</span>
                 <strong>{(state.bossArchive || []).length}</strong>
               </div>
+
+              <div className="profile-metric">
+                <span>Damage Multiplier</span>
+                <strong>{streakMultiplier}x</strong>
+              </div>
             </div>
 
             <div className="stats-grid">
@@ -1259,6 +1282,9 @@ function App() {
               <p className="boss-meta">
                 HP: {bossHpRemaining} / {weeklyBoss.hp}
               </p>
+              <p className="boss-meta">
+                Base Damage: {baseBossDamage} • Streak Multiplier: {streakMultiplier}x
+              </p>
               <p>{weeklyBoss.description}</p>
               <p>
                 <strong>Weakness:</strong> {weeklyBoss.weakness}
@@ -1326,6 +1352,15 @@ function App() {
                 <span>{completedToday >= 3 ? 'Done' : 'Pending'}</span>
               </div>
 
+              <div className={`reward ${streakMultiplier > 1 ? 'unlocked' : ''}`}>
+                <Flame />
+                <div>
+                  <strong>Streak Damage Multiplier</strong>
+                  <p>3 days: 1.1x • 7 days: 1.25x • 14 days: 1.5x • 30 days: 2x.</p>
+                </div>
+                <span>{streakMultiplier}x</span>
+              </div>
+
               <div className={`reward ${state.streak >= 3 ? 'unlocked' : ''}`}>
                 <Shield />
                 <div>
@@ -1360,7 +1395,7 @@ function App() {
                       {entry.domain} • Week {entry.week} •{' '}
                       {new Date(entry.defeatedAt).toLocaleDateString()}
                     </p>
-                    <p>{entry.damageDealt} damage dealt / {entry.hp} HP</p>
+                    <p>{entry.damageDealt} damage dealt / {entry.hp} HP • {entry.multiplier || 1}x</p>
                     <p>{entry.victory}</p>
                   </div>
                   <span>Defeated</span>
