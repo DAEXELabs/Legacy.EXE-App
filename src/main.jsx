@@ -7,7 +7,6 @@ import {
   Heart,
   Palette,
   Shield,
-  Sword,
   Trophy,
   Plus,
   CheckCircle2,
@@ -17,6 +16,7 @@ import {
   Sparkles,
   Timer,
   MessageSquareText,
+  Dumbbell,
 } from 'lucide-react';
 import './styles.css';
 
@@ -35,6 +35,7 @@ const PROOF_META = {
   honor: { label: 'Honor', icon: CheckCircle2 },
   timer: { label: 'Timer', icon: Timer },
   checkin: { label: 'Check-in', icon: MessageSquareText },
+  workout: { label: 'Workout KPI', icon: Dumbbell },
 };
 
 const starterState = {
@@ -46,6 +47,7 @@ const starterState = {
   streak: 0,
   lastCompletedDate: null,
   onboarded: false,
+  workoutLogs: [],
   stats: {
     health: 0,
     knowledge: 0,
@@ -55,12 +57,60 @@ const starterState = {
     discipline: 0,
   },
   quests: [
-    { id: crypto.randomUUID(), title: 'Workout 30 minutes', stat: 'health', xp: 100, frequency: 'daily', proof: 'honor', completedToday: false },
-    { id: crypto.randomUUID(), title: 'Read or study 20 minutes', stat: 'knowledge', xp: 50, frequency: 'daily', proof: 'checkin', completedToday: false },
-    { id: crypto.randomUUID(), title: 'Intentional family time', stat: 'relationships', xp: 50, frequency: 'daily', proof: 'checkin', completedToday: false },
-    { id: crypto.randomUUID(), title: 'Focus session 25 minutes', stat: 'discipline', xp: 75, frequency: 'daily', proof: 'timer', completedToday: false },
-    { id: crypto.randomUUID(), title: 'Budget check-in', stat: 'wealth', xp: 25, frequency: 'daily', proof: 'honor', completedToday: false },
-    { id: crypto.randomUUID(), title: 'Creative session 30 minutes', stat: 'creativity', xp: 50, frequency: 'daily', proof: 'timer', completedToday: false },
+    {
+      id: crypto.randomUUID(),
+      title: 'Workout 30 minutes',
+      stat: 'health',
+      xp: 100,
+      frequency: 'daily',
+      proof: 'workout',
+      completedToday: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Read or study 20 minutes',
+      stat: 'knowledge',
+      xp: 50,
+      frequency: 'daily',
+      proof: 'checkin',
+      completedToday: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Intentional family time',
+      stat: 'relationships',
+      xp: 50,
+      frequency: 'daily',
+      proof: 'checkin',
+      completedToday: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Focus session 25 minutes',
+      stat: 'discipline',
+      xp: 75,
+      frequency: 'daily',
+      proof: 'timer',
+      completedToday: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Budget check-in',
+      stat: 'wealth',
+      xp: 25,
+      frequency: 'daily',
+      proof: 'honor',
+      completedToday: false,
+    },
+    {
+      id: crypto.randomUUID(),
+      title: 'Creative session 30 minutes',
+      stat: 'creativity',
+      xp: 50,
+      frequency: 'daily',
+      proof: 'timer',
+      completedToday: false,
+    },
   ],
   rewards: [
     { id: 1, name: 'Uncompiled', requirement: 'Start your journey', unlocked: true },
@@ -92,18 +142,55 @@ function getBossProgress(quests) {
   return Math.min(100, Math.round((completed / Math.max(quests.length, 1)) * 100));
 }
 
+function calculateEffortScore(log) {
+  const duration = Number(log.duration || 0);
+  const effort = Number(log.effort || 0);
+  const sets = Number(log.sets || 0);
+  const reps = Number(log.reps || 0);
+
+  return Math.round(
+    duration +
+    effort * 5 +
+    sets * 2 +
+    Math.floor(reps / 10)
+  );
+}
+
 function App() {
   const [state, setState] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : starterState;
   });
-  const [newQuest, setNewQuest] = useState({ title: '', stat: 'discipline', xp: 50, frequency: 'daily', proof: 'honor' });
+
+  const [newQuest, setNewQuest] = useState({
+    title: '',
+    stat: 'discipline',
+    xp: 50,
+    frequency: 'daily',
+    proof: 'honor',
+  });
+
   const [tab, setTab] = useState('home');
   const [checkinQuest, setCheckinQuest] = useState(null);
   const [checkinText, setCheckinText] = useState('');
   const [timerQuest, setTimerQuest] = useState(null);
   const [timerDone, setTimerDone] = useState(false);
-  const [profileDraft, setProfileDraft] = useState({ playerName: '', avatar: '⚔️', title: 'Uncompiled Operator' });
+
+  const [workoutQuest, setWorkoutQuest] = useState(null);
+  const [workoutProof, setWorkoutProof] = useState({
+    type: 'Strength',
+    duration: 30,
+    effort: 6,
+    sets: 6,
+    reps: 60,
+    notes: '',
+  });
+
+  const [profileDraft, setProfileDraft] = useState({
+    playerName: '',
+    avatar: '⚔️',
+    title: 'Uncompiled Operator',
+  });
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -131,7 +218,7 @@ function App() {
     setState(prev => ({ ...prev, ...profileDraft, playerName: name, onboarded: true }));
   }
 
-  function completeQuest(id) {
+  function completeQuest(id, payload = {}) {
     setState(prev => {
       const quest = prev.quests.find(q => q.id === id);
       if (!quest || quest.completedToday) return prev;
@@ -160,35 +247,87 @@ function App() {
         level: nextLevel,
         streak: nextStreak,
         lastCompletedDate: today,
+        workoutLogs: payload.workoutLog
+          ? [...(prev.workoutLogs || []), payload.workoutLog]
+          : (prev.workoutLogs || []),
         stats: {
           ...prev.stats,
           [quest.stat]: prev.stats[quest.stat] + 1,
-          discipline: quest.stat === 'discipline' ? prev.stats.discipline + 1 : prev.stats.discipline,
+          discipline:
+            quest.stat === 'discipline'
+              ? prev.stats.discipline + 1
+              : prev.stats.discipline,
         },
         rewards,
-        quests: prev.quests.map(q => q.id === id ? { ...q, completedToday: true } : q),
+        quests: prev.quests.map(q =>
+          q.id === id ? { ...q, completedToday: true } : q
+        ),
       };
     });
   }
 
   function requestQuestCompletion(quest) {
     if (quest.completedToday) return;
+
+    if (quest.proof === 'workout') {
+      setWorkoutQuest(quest);
+      setWorkoutProof({
+        type: 'Strength',
+        duration: 30,
+        effort: 6,
+        sets: 6,
+        reps: 60,
+        notes: '',
+      });
+      return;
+    }
+
     if (quest.proof === 'checkin') {
       setCheckinQuest(quest);
       setCheckinText('');
       return;
     }
+
     if (quest.proof === 'timer') {
       setTimerQuest(quest);
       setTimerDone(false);
       return;
     }
+
     completeQuest(quest.id);
+  }
+
+  function submitWorkout(e) {
+    e.preventDefault();
+
+    if (!workoutQuest) return;
+
+    const effortScore = calculateEffortScore(workoutProof);
+
+    if (
+      Number(workoutProof.duration || 0) < 10 ||
+      Number(workoutProof.effort || 0) < 3 ||
+      effortScore < 25
+    ) {
+      return;
+    }
+
+    completeQuest(workoutQuest.id, {
+      workoutLog: {
+        ...workoutProof,
+        effortScore,
+        date: todayKey(),
+      },
+    });
+
+    setWorkoutQuest(null);
   }
 
   function submitCheckin(e) {
     e.preventDefault();
+
     if (!checkinQuest || checkinText.trim().length < 5) return;
+
     completeQuest(checkinQuest.id);
     setCheckinQuest(null);
     setCheckinText('');
@@ -196,6 +335,7 @@ function App() {
 
   function submitTimer() {
     if (!timerQuest || !timerDone) return;
+
     completeQuest(timerQuest.id);
     setTimerQuest(null);
     setTimerDone(false);
@@ -203,19 +343,36 @@ function App() {
 
   function addQuest(e) {
     e.preventDefault();
+
     if (!newQuest.title.trim()) return;
+
     setState(prev => ({
       ...prev,
       quests: [
         ...prev.quests,
-        { id: crypto.randomUUID(), ...newQuest, xp: Number(newQuest.xp), completedToday: false },
+        {
+          id: crypto.randomUUID(),
+          ...newQuest,
+          xp: Number(newQuest.xp),
+          completedToday: false,
+        },
       ],
     }));
-    setNewQuest({ title: '', stat: 'discipline', xp: 50, frequency: 'daily', proof: 'honor' });
+
+    setNewQuest({
+      title: '',
+      stat: 'discipline',
+      xp: 50,
+      frequency: 'daily',
+      proof: 'honor',
+    });
   }
 
   function resetDay() {
-    setState(prev => ({ ...prev, quests: prev.quests.map(q => ({ ...q, completedToday: false })) }));
+    setState(prev => ({
+      ...prev,
+      quests: prev.quests.map(q => ({ ...q, completedToday: false })),
+    }));
   }
 
   function resetApp() {
@@ -229,25 +386,49 @@ function App() {
         <section className="phone-frame onboarding-frame">
           <p className="eyebrow">LEGACY.EXE</p>
           <h1>Stop planning. Start executing.</h1>
-          <p className="intro-copy">Build yourself one quest at a time. Create your operator and begin compiling your legacy.</p>
+          <p className="intro-copy">
+            Build yourself one quest at a time. Create your operator and begin compiling your legacy.
+          </p>
 
           <form className="form-card onboarding-card" onSubmit={finishOnboarding}>
             <div className="avatar forge-avatar">{profileDraft.avatar}</div>
+
             <label>Operator Name</label>
-            <input value={profileDraft.playerName} onChange={e => setProfileDraft({ ...profileDraft, playerName: e.target.value })} placeholder="Raymond, Operator, Builder..." />
+            <input
+              value={profileDraft.playerName}
+              onChange={e =>
+                setProfileDraft({ ...profileDraft, playerName: e.target.value })
+              }
+              placeholder="Raymond, Operator, Builder..."
+            />
+
             <label>Avatar</label>
             <div className="emoji-grid">
               {['⚔️', '🛡️', '🔥', '🧠', '👑', '🐺', '⚡', '🧱'].map(icon => (
-                <button type="button" key={icon} className={profileDraft.avatar === icon ? 'active' : ''} onClick={() => setProfileDraft({ ...profileDraft, avatar: icon })}>{icon}</button>
+                <button
+                  type="button"
+                  key={icon}
+                  className={profileDraft.avatar === icon ? 'active' : ''}
+                  onClick={() => setProfileDraft({ ...profileDraft, avatar: icon })}
+                >
+                  {icon}
+                </button>
               ))}
             </div>
+
             <label>Title</label>
-            <select value={profileDraft.title} onChange={e => setProfileDraft({ ...profileDraft, title: e.target.value })}>
+            <select
+              value={profileDraft.title}
+              onChange={e =>
+                setProfileDraft({ ...profileDraft, title: e.target.value })
+              }
+            >
               <option>Uncompiled Operator</option>
               <option>Discipline Builder</option>
               <option>Warrior in Training</option>
               <option>Legacy Architect</option>
             </select>
+
             <button className="primary">Begin Compile</button>
           </form>
         </section>
@@ -268,7 +449,13 @@ function App() {
 
         <nav className="tabs">
           {['home', 'quests', 'character', 'boss'].map(item => (
-            <button key={item} onClick={() => setTab(item)} className={tab === item ? 'active' : ''}>{item}</button>
+            <button
+              key={item}
+              onClick={() => setTab(item)}
+              className={tab === item ? 'active' : ''}
+            >
+              {item}
+            </button>
           ))}
         </nav>
 
@@ -277,7 +464,9 @@ function App() {
             <div className="hero-card">
               <div className={`avatar ${dominantStat}`}>{state.avatar}</div>
               <div className="hero-copy">
-                <p className="eyebrow">{tier} • {state.title}</p>
+                <p className="eyebrow">
+                  {tier} • {state.title}
+                </p>
                 <h2>{state.playerName}</h2>
                 <p>Dominant path: {STAT_META[dominantStat].label}</p>
               </div>
@@ -286,9 +475,13 @@ function App() {
             <div className="xp-card">
               <div className="row-between">
                 <span>XP Progress</span>
-                <strong>{state.xp} / {currentLevelXp}</strong>
+                <strong>
+                  {state.xp} / {currentLevelXp}
+                </strong>
               </div>
-              <div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
+              <div className="progress-track">
+                <div className="progress-fill" style={{ width: `${progress}%` }} />
+              </div>
             </div>
 
             <div className="boss-card">
@@ -299,14 +492,34 @@ function App() {
                 </div>
                 <Skull />
               </div>
-              <p>The Drift feeds on delay, excuses, and unfinished intentions. Quests damage it.</p>
-              <div className="progress-track"><div className="progress-fill boss" style={{ width: `${bossProgress}%` }} /></div>
-              <small>{bossProgress}% defeated today • {completedToday}/{state.quests.length} quests complete</small>
+              <p>
+                The Drift feeds on delay, excuses, and unfinished intentions. Quests damage it.
+              </p>
+              <div className="progress-track">
+                <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
+              </div>
+              <small>
+                {bossProgress}% defeated today • {completedToday}/{state.quests.length} quests complete
+              </small>
             </div>
 
             <div className="quest-list">
-              <div className="row-between"><h3>Today's Quests</h3><button className="ghost" onClick={resetDay}><RotateCcw size={16} /> Reset day</button></div>
-              {state.quests.slice(0, 4).map(q => <QuestItem key={q.id} quest={q} onComplete={requestQuestCompletion} />)}
+              <div className="row-between">
+                <h3>Today&apos;s Quests</h3>
+                <button className="ghost" onClick={resetDay}>
+                  <RotateCcw size={16} /> Reset day
+                </button>
+              </div>
+
+              {state.quests
+                .slice(0, 4)
+                .map(q => (
+                  <QuestItem
+                    key={q.id}
+                    quest={q}
+                    onComplete={requestQuestCompletion}
+                  />
+                ))}
             </div>
           </section>
         )}
@@ -315,23 +528,68 @@ function App() {
           <section className="screen-stack">
             <form className="form-card" onSubmit={addQuest}>
               <h3>Create Quest</h3>
-              <input value={newQuest.title} onChange={e => setNewQuest({ ...newQuest, title: e.target.value })} placeholder="Example: Workout" />
+
+              <input
+                value={newQuest.title}
+                onChange={e => setNewQuest({ ...newQuest, title: e.target.value })}
+                placeholder="Example: Workout"
+              />
+
               <div className="form-grid">
-                <select value={newQuest.stat} onChange={e => setNewQuest({ ...newQuest, stat: e.target.value })}>
-                  {Object.entries(STAT_META).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}
+                <select
+                  value={newQuest.stat}
+                  onChange={e => setNewQuest({ ...newQuest, stat: e.target.value })}
+                >
+                  {Object.entries(STAT_META).map(([key, meta]) => (
+                    <option key={key} value={key}>
+                      {meta.label}
+                    </option>
+                  ))}
                 </select>
-                <input type="number" min="10" step="5" value={newQuest.xp} onChange={e => setNewQuest({ ...newQuest, xp: e.target.value })} />
+
+                <input
+                  type="number"
+                  min="10"
+                  step="5"
+                  value={newQuest.xp}
+                  onChange={e => setNewQuest({ ...newQuest, xp: e.target.value })}
+                />
               </div>
+
               <div className="form-grid">
-                <input value={newQuest.frequency} onChange={e => setNewQuest({ ...newQuest, frequency: e.target.value })} placeholder="daily, weekly, 3x weekly" />
-                <select value={newQuest.proof} onChange={e => setNewQuest({ ...newQuest, proof: e.target.value })}>
-                  {Object.entries(PROOF_META).map(([key, meta]) => <option key={key} value={key}>{meta.label}</option>)}
+                <input
+                  value={newQuest.frequency}
+                  onChange={e =>
+                    setNewQuest({ ...newQuest, frequency: e.target.value })
+                  }
+                  placeholder="daily, weekly, 3x weekly"
+                />
+
+                <select
+                  value={newQuest.proof}
+                  onChange={e => setNewQuest({ ...newQuest, proof: e.target.value })}
+                >
+                  {Object.entries(PROOF_META).map(([key, meta]) => (
+                    <option key={key} value={key}>
+                      {meta.label}
+                    </option>
+                  ))}
                 </select>
               </div>
-              <button className="primary"><Plus size={18} /> Add Quest</button>
+
+              <button className="primary">
+                <Plus size={18} /> Add Quest
+              </button>
             </form>
+
             <div className="quest-list">
-              {state.quests.map(q => <QuestItem key={q.id} quest={q} onComplete={requestQuestCompletion} />)}
+              {state.quests.map(q => (
+                <QuestItem
+                  key={q.id}
+                  quest={q}
+                  onComplete={requestQuestCompletion}
+                />
+              ))}
             </div>
           </section>
         )}
@@ -347,18 +605,33 @@ function App() {
                 <p>Streak: {state.streak} completions</p>
               </div>
             </div>
+
             <div className="stats-grid">
               {Object.entries(STAT_META).map(([key, meta]) => {
                 const Icon = meta.icon;
-                return <div className="stat-card" key={key}><Icon size={20} /><span>{meta.label}</span><strong>{state.stats[key]}</strong></div>;
+                return (
+                  <div className="stat-card" key={key}>
+                    <Icon size={20} />
+                    <span>{meta.label}</span>
+                    <strong>{state.stats[key]}</strong>
+                  </div>
+                );
               })}
             </div>
+
             <div className="quest-list">
               <h3>Unlocks</h3>
+
               {state.rewards.map(reward => (
-                <div className={`reward ${reward.unlocked ? 'unlocked' : ''}`} key={reward.id}>
+                <div
+                  className={`reward ${reward.unlocked ? 'unlocked' : ''}`}
+                  key={reward.id}
+                >
                   <Trophy />
-                  <div><strong>{reward.name}</strong><p>{reward.requirement}</p></div>
+                  <div>
+                    <strong>{reward.name}</strong>
+                    <p>{reward.requirement}</p>
+                  </div>
                   <span>{reward.unlocked ? 'Unlocked' : 'Locked'}</span>
                 </div>
               ))}
@@ -369,23 +642,164 @@ function App() {
         {tab === 'boss' && (
           <section className="screen-stack">
             <div className="boss-card boss-screen">
-              <div className="boss-avatar"><Skull size={70} /></div>
+              <div className="boss-avatar">
+                <Skull size={70} />
+              </div>
               <p className="eyebrow">Weekly Boss</p>
               <h2>The Drift</h2>
-              <p>It grows when your goals stay imaginary. Damage it with proof-backed action.</p>
-              <div className="progress-track"><div className="progress-fill boss" style={{ width: `${bossProgress}%` }} /></div>
-              <strong>{bossProgress >= 100 ? 'Victory State Unlocked' : `${100 - bossProgress}% HP Remaining`}</strong>
+              <p>
+                It grows when your goals stay imaginary. Damage it with proof-backed action.
+              </p>
+              <div className="progress-track">
+                <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
+              </div>
+              <strong>
+                {bossProgress >= 100
+                  ? 'Victory State Unlocked'
+                  : `${100 - bossProgress}% HP Remaining`}
+              </strong>
             </div>
+
             <div className="quest-list">
               <h3>Victory Conditions</h3>
-              <div className="reward unlocked"><Flame /><div><strong>Complete quests</strong><p>Every completed quest damages The Drift.</p></div><span>{completedToday}/{state.quests.length}</span></div>
-              <div className={`reward ${completedToday >= 3 ? 'unlocked' : ''}`}><Sparkles /><div><strong>Complete 3 today</strong><p>Reach a daily momentum threshold.</p></div><span>{completedToday >= 3 ? 'Done' : 'Pending'}</span></div>
-              <div className={`reward ${state.streak >= 3 ? 'unlocked' : ''}`}><Shield /><div><strong>Build a 3-completion streak</strong><p>Prove you can return to the system.</p></div><span>{state.streak >= 3 ? 'Done' : 'Pending'}</span></div>
+
+              <div className="reward unlocked">
+                <Flame />
+                <div>
+                  <strong>Complete quests</strong>
+                  <p>Every completed quest damages The Drift.</p>
+                </div>
+                <span>
+                  {completedToday}/{state.quests.length}
+                </span>
+              </div>
+
+              <div className={`reward ${completedToday >= 3 ? 'unlocked' : ''}`}>
+                <Sparkles />
+                <div>
+                  <strong>Complete 3 today</strong>
+                  <p>Reach a daily momentum threshold.</p>
+                </div>
+                <span>{completedToday >= 3 ? 'Done' : 'Pending'}</span>
+              </div>
+
+              <div className={`reward ${state.streak >= 3 ? 'unlocked' : ''}`}>
+                <Shield />
+                <div>
+                  <strong>Build a 3-completion streak</strong>
+                  <p>Prove you can return to the system.</p>
+                </div>
+                <span>{state.streak >= 3 ? 'Done' : 'Pending'}</span>
+              </div>
             </div>
-            <button className="danger" onClick={resetApp}>Reset Operator</button>
+
+            <button className="danger" onClick={resetApp}>
+              Reset Operator
+            </button>
           </section>
         )}
       </section>
+
+      {workoutQuest && (
+        <div className="modal-backdrop">
+          <form className="modal-card" onSubmit={submitWorkout}>
+            <p className="eyebrow">Workout Proof KPI</p>
+            <h3>{workoutQuest.title}</h3>
+            <p>
+              Log measurable effort before XP unlocks. Minimum: 10 minutes, effort 3+, score 25+.
+            </p>
+
+            <div className="form-grid">
+              <select
+                value={workoutProof.type}
+                onChange={e =>
+                  setWorkoutProof({ ...workoutProof, type: e.target.value })
+                }
+              >
+                <option>Strength</option>
+                <option>Cardio</option>
+                <option>Mobility</option>
+                <option>Sport</option>
+                <option>Other</option>
+              </select>
+
+              <input
+                type="number"
+                min="0"
+                value={workoutProof.duration}
+                onChange={e =>
+                  setWorkoutProof({ ...workoutProof, duration: e.target.value })
+                }
+                placeholder="Minutes"
+              />
+            </div>
+
+            <div className="form-grid">
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={workoutProof.effort}
+                onChange={e =>
+                  setWorkoutProof({ ...workoutProof, effort: e.target.value })
+                }
+                placeholder="Effort 1-10"
+              />
+
+              <input
+                type="number"
+                min="0"
+                value={workoutProof.sets}
+                onChange={e =>
+                  setWorkoutProof({ ...workoutProof, sets: e.target.value })
+                }
+                placeholder="Sets"
+              />
+            </div>
+
+            <input
+              type="number"
+              min="0"
+              value={workoutProof.reps}
+              onChange={e =>
+                setWorkoutProof({ ...workoutProof, reps: e.target.value })
+              }
+              placeholder="Reps"
+            />
+
+            <textarea
+              value={workoutProof.notes}
+              onChange={e =>
+                setWorkoutProof({ ...workoutProof, notes: e.target.value })
+              }
+              placeholder="What did you actually do?"
+            />
+
+            <div className="kpi-score">
+              Effort Score: {calculateEffortScore(workoutProof)}
+            </div>
+
+            <button
+              className="primary"
+              disabled={
+                Number(workoutProof.duration || 0) < 10 ||
+                Number(workoutProof.effort || 0) < 3 ||
+                calculateEffortScore(workoutProof) < 25
+              }
+            >
+              Submit Workout Proof
+            </button>
+
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => setWorkoutQuest(null)}
+            >
+              Cancel
+            </button>
+          </form>
+        </div>
+      )}
 
       {checkinQuest && (
         <div className="modal-backdrop">
@@ -393,9 +807,24 @@ function App() {
             <p className="eyebrow">Proof of Effort</p>
             <h3>{checkinQuest.title}</h3>
             <p>Write one honest sentence about what you did.</p>
-            <textarea value={checkinText} onChange={e => setCheckinText(e.target.value)} placeholder="Example: I read chapter 2 and took notes." />
-            <button className="primary" disabled={checkinText.trim().length < 5}>Submit Proof</button>
-            <button type="button" className="ghost" onClick={() => setCheckinQuest(null)}>Cancel</button>
+
+            <textarea
+              value={checkinText}
+              onChange={e => setCheckinText(e.target.value)}
+              placeholder="Example: I read chapter 2 and took notes."
+            />
+
+            <button className="primary" disabled={checkinText.trim().length < 5}>
+              Submit Proof
+            </button>
+
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => setCheckinQuest(null)}
+            >
+              Cancel
+            </button>
           </form>
         </div>
       )}
@@ -405,10 +834,26 @@ function App() {
           <div className="modal-card">
             <p className="eyebrow">Timer Proof</p>
             <h3>{timerQuest.title}</h3>
+
             <div className="timer-ring">{timerDone ? '✓' : '5'}</div>
-            <p>{timerDone ? 'Timer complete. Claim your XP.' : 'Demo timer running. Full focus timer comes next.'}</p>
-            <button className="primary" disabled={!timerDone} onClick={submitTimer}>Claim XP</button>
-            <button type="button" className="ghost" onClick={() => setTimerQuest(null)}>Cancel</button>
+
+            <p>
+              {timerDone
+                ? 'Timer complete. Claim your XP.'
+                : 'Demo timer running. Full focus timer comes next.'}
+            </p>
+
+            <button className="primary" disabled={!timerDone} onClick={submitTimer}>
+              Claim XP
+            </button>
+
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => setTimerQuest(null)}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -419,17 +864,30 @@ function App() {
 function QuestItem({ quest, onComplete }) {
   const Icon = STAT_META[quest.stat].icon;
   const ProofIcon = PROOF_META[quest.proof]?.icon || CheckCircle2;
+
   return (
     <article className={`quest-item ${quest.completedToday ? 'complete' : ''}`}>
       <div className="quest-left">
-        <div className="quest-icon"><Icon size={20} /></div>
+        <div className="quest-icon">
+          <Icon size={20} />
+        </div>
+
         <div>
           <h4>{quest.title}</h4>
-          <p>{STAT_META[quest.stat].label} • {quest.frequency} • {quest.xp} XP</p>
-          <span className="proof-badge"><ProofIcon size={12} /> {PROOF_META[quest.proof]?.label || 'Honor'}</span>
+          <p>
+            {STAT_META[quest.stat].label} • {quest.frequency} • {quest.xp} XP
+          </p>
+          <span className="proof-badge">
+            <ProofIcon size={12} /> {PROOF_META[quest.proof]?.label || 'Honor'}
+          </span>
         </div>
       </div>
-      <button onClick={() => onComplete(quest)} disabled={quest.completedToday} className="complete-btn">
+
+      <button
+        onClick={() => onComplete(quest)}
+        disabled={quest.completedToday}
+        className="complete-btn"
+      >
         <CheckCircle2 size={20} />
       </button>
     </article>
