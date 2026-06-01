@@ -63,6 +63,10 @@ Expanded prompt:
 
 > Full body mobile RPG character design, The Warrior archetype, athletic build, futuristic lightweight armor, training gloves, reinforced boots, energy blade or titan hammer, dark cyber-fantasy outfit, neon gold and electric blue accents, heroic stance, clean mobile game asset style, high detail, transparent background.
 
+Stage progression prompt:
+
+> Mobile RPG character progression sheet for The Warrior archetype, cyber-fantasy health and fitness hero, five stages from starter training clothes to Apex Titan, dark lightweight armor, neon blue and gold energy accents, Titan Hammer and Energy Blade unlocks, transparent or clean background, high detail game asset concept art.
+
 ---
 
 ## Color Palette
@@ -284,6 +288,162 @@ Heroic stance with Titan Hammer, energy blade, or glowing gauntlets. She should 
 
 ---
 
+## Detailed Progression Breakdown
+
+The Warrior progression should visibly map real-life health and fitness milestones to character evolution.
+
+## Stage 0: Awakened
+
+**Levels:** 1–10
+
+**Visual:**
+- Simple dark training hoodie
+- Basic pants or joggers
+- Starter training gloves
+- Minimal blue glow
+- No armor yet
+- No main weapon yet
+
+**Milestones:**
+- First workouts
+- Beginner step goals
+- First water goals
+- First recovery goals
+- Habit formation
+
+**Skills Unlocked:**
+- First Rep
+- Core Ignition
+- Basic Vital Flow
+
+**Theme:**
+
+> The spark has been lit.
+
+---
+
+## Stage 1: Novice Warrior
+
+**Levels:** 11–20
+
+**Visual:**
+- Lightweight futuristic armor plating
+- Chest and shoulder armor
+- Glowing blue seams
+- Energy training gloves
+- Reinforced shoes
+
+**Milestones:**
+- Regular workout routine established
+- First strength personal records
+- Consistent weekly training
+- Early hydration and recovery consistency
+
+**Skills Unlocked:**
+- Resilience Frame
+- Power Surge
+- Hydration Core
+- Recovery Guard
+
+**Weapon Unlock:**
+- Basic Energy Blade
+
+**Theme:**
+
+> Discipline becomes armor.
+
+---
+
+## Stage 2: Conditioned Warrior
+
+**Levels:** 21–30
+
+**Visual:**
+- Reinforced armor with gold accents
+- Stronger blue energy lines
+- Visible athletic definition under armor
+- Power gauntlets
+- Endurance boots
+
+**Milestones:**
+- Intermediate strength and conditioning
+- Body composition progress
+- 30+ day fitness consistency
+- Improved nutrition habits
+
+**Skills Unlocked:**
+- Endurance Lattice
+- Adaptive Form
+- Synergy Strike
+- Nutrition Forge
+
+**Weapon Unlock:**
+- Titan Hammer basic form
+
+**Theme:**
+
+> The body is becoming a weapon.
+
+---
+
+## Stage 3: Elite Warrior
+
+**Levels:** 31–40
+
+**Visual:**
+- Full heroic armor set
+- Glowing cybernetic details
+- Intense energy aura
+- Battle-worn but powerful look
+- Advanced blade or hammer effects
+
+**Milestones:**
+- Advanced lifting or endurance goals
+- Optimized recovery and nutrition
+- Multiple weekly boss victories
+- Long-term training identity established
+
+**Skills Unlocked:**
+- Battlefield Prowess
+- Combat Reflexes
+- Legacy Forge
+- Battle Rhythm
+
+**Theme:**
+
+> Strength that inspires others.
+
+---
+
+## Stage 4: Apex Titan
+
+**Levels:** 41–50+
+
+**Visual:**
+- Transcendent blue-gold cyber form
+- Legendary armor
+- Radiant energy core
+- Massive Titan Hammer
+- Overwhelming blue and gold aura
+- Champion profile frame
+
+**Milestones:**
+- Long-term health transformation
+- Mastery-level consistency
+- Mentoring or encouraging others
+- Major personal records or milestone completion
+
+**Skills Unlocked:**
+- Titan Overload
+- Eternal Vitality
+- Ascendant Warrior Core
+
+**Theme:**
+
+> The Warrior becomes legend.
+
+---
+
 ## Gear Progression
 
 ## Common Gear
@@ -489,44 +649,43 @@ Possible hybrid title:
 
 ---
 
-## Warrior Progression Stages
+## Progression Systems
 
-## Stage 0: Uncompiled Warrior
+### Compilation Meter
 
-- Plain training hoodie
-- Basic joggers
-- Starter shoes
-- No weapon yet
-- Minimal blue glow
+The Warrior Compilation Meter fills through:
 
-## Stage 1: Early Warrior
+- Logged workouts
+- Step goals
+- Strength sessions
+- Cardio sessions
+- Hydration goals
+- Sleep goals
+- Recovery sessions
+- Nutrition consistency
 
-- Training gloves
-- Reinforced shoes
-- Light armor accents
-- Small energy aura
+### Visual Feedback
 
-## Stage 2: Mid Warrior
+As the meter fills:
 
-- Lightweight armor
-- Power gauntlets
-- Endurance boots
-- Stronger blue and gold glow
+- Glow intensity increases
+- Armor complexity increases
+- Weapon effects become stronger
+- Profile frames become more advanced
+- Aura becomes more visible
 
-## Stage 3: Advanced Warrior
+### Recovery Protection
 
-- Energy blade or hammer unlock
-- Kinetic armor
-- Shoulder plating
-- Battle aura
+Rest days should not break Warrior identity.
 
-## Stage 4: Ascendant Warrior
+Recovery actions should count as Warrior actions when they are intentional:
 
-- Ascendant Warrior Armor
-- Titan Hammer
-- Lightning aura
-- Champion profile frame
-- Fully evolved Warrior silhouette
+- Stretching
+- Mobility
+- Sleep
+- Hydration
+- Rest day check-in
+- Light walk
 
 ---
 
@@ -555,17 +714,17 @@ This makes the system healthier and prevents the app from encouraging burnout.
 ```text
 src/assets/characters/warrior/
   male/
-    stage-0.png
-    stage-1.png
-    stage-2.png
-    stage-3.png
-    stage-4.png
+    stage-0-awakened.png
+    stage-1-novice.png
+    stage-2-conditioned.png
+    stage-3-elite.png
+    stage-4-apex-titan.png
   female/
-    stage-0.png
-    stage-1.png
-    stage-2.png
-    stage-3.png
-    stage-4.png
+    stage-0-awakened.png
+    stage-1-novice.png
+    stage-2-conditioned.png
+    stage-3-elite.png
+    stage-4-apex-titan.png
   tools/
     titan-hammer.png
     energy-blade.png
