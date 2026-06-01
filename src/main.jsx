@@ -50,6 +50,7 @@ const CHRONICLE_TYPES = [
 const BOSSES = [
   {
     name: 'The Drift',
+    hp: 1000,
     icon: '🌫️',
     archetype: 'Shadow Wraith',
     domain: 'Delay',
@@ -62,6 +63,7 @@ const BOSSES = [
   },
   {
     name: 'The Noise Eater',
+    hp: 1250,
     icon: '📡',
     archetype: 'Alien Parasite',
     domain: 'Distraction',
@@ -74,6 +76,7 @@ const BOSSES = [
   },
   {
     name: 'The Doubt Wraith',
+    hp: 1500,
     icon: '👁️',
     archetype: 'Mind Haunter',
     domain: 'Self-Doubt',
@@ -86,6 +89,7 @@ const BOSSES = [
   },
   {
     name: 'The Comfort Tyrant',
+    hp: 1750,
     icon: '👑',
     archetype: 'Iron King',
     domain: 'Comfort',
@@ -98,6 +102,7 @@ const BOSSES = [
   },
   {
     name: 'The Guiltborn',
+    hp: 2000,
     icon: '⛓️',
     archetype: 'Chain Demon',
     domain: 'Shame',
@@ -110,6 +115,7 @@ const BOSSES = [
   },
   {
     name: 'The Spiral',
+    hp: 2250,
     icon: '🌀',
     archetype: 'Reality Mage',
     domain: 'Overthinking',
@@ -122,6 +128,7 @@ const BOSSES = [
   },
   {
     name: 'The False Self',
+    hp: 2500,
     icon: '🎭',
     archetype: 'Mirror Phantom',
     domain: 'Fantasy',
@@ -134,6 +141,7 @@ const BOSSES = [
   },
   {
     name: 'The Fear Architect',
+    hp: 3000,
     icon: '🏰',
     archetype: 'Void Engineer',
     domain: 'Fear',
@@ -146,6 +154,7 @@ const BOSSES = [
   },
   {
     name: 'The Fragmentor',
+    hp: 3250,
     icon: '🧩',
     archetype: 'Glitch Construct',
     domain: 'Scattered Focus',
@@ -158,6 +167,7 @@ const BOSSES = [
   },
   {
     name: 'The Craving Maw',
+    hp: 3500,
     icon: '🦷',
     archetype: 'Hunger Beast',
     domain: 'Impulse',
@@ -170,6 +180,7 @@ const BOSSES = [
   },
   {
     name: 'The Hollow King',
+    hp: 4000,
     icon: '🕳️',
     archetype: 'Empty Monarch',
     domain: 'Numbness',
@@ -182,6 +193,7 @@ const BOSSES = [
   },
   {
     name: 'The Unfinished One',
+    hp: 5000,
     icon: '🪦',
     archetype: 'Gravebound Giant',
     domain: 'Abandoned Momentum',
@@ -312,9 +324,23 @@ function getWeeklyBoss() {
   };
 }
 
-function getBossProgress(quests) {
-  const completed = quests.filter(q => q.completedToday).length;
-  return Math.min(100, Math.round((completed / Math.max(quests.length, 1)) * 100));
+function getBossDamage(quests, chroniclePosts = []) {
+  const questDamage = quests
+    .filter(q => q.completedToday)
+    .reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
+
+  const today = todayKey();
+
+  const chronicleDamage = chroniclePosts
+    .filter(post => post.date?.slice(0, 10) === today)
+    .reduce((sum, post) => sum + Number(post.xp || 25), 0);
+
+  return questDamage + chronicleDamage;
+}
+
+function getBossProgress(boss, quests, chroniclePosts = []) {
+  const damage = getBossDamage(quests, chroniclePosts);
+  return Math.min(100, Math.round((damage / boss.hp) * 100));
 }
 
 function calculateEffortScore(log) {
@@ -1195,6 +1221,9 @@ function App() {
               <h2>{weeklyBoss.name}</h2>
               <p className="boss-meta">
                 {weeklyBoss.archetype} • Domain: {weeklyBoss.domain}
+              </p>
+              <p className="boss-meta">
+                HP: {bossHpRemaining} / {weeklyBoss.hp}
               </p>
               <p>{weeklyBoss.description}</p>
               <p>
