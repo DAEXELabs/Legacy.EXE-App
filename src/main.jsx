@@ -41,72 +41,108 @@ const PROOF_META = {
 const BOSSES = [
   {
     name: 'The Drift',
+    icon: '🌫️',
+    archetype: 'Shadow Wraith',
+    domain: 'Delay',
     description: 'It feeds on delay, excuses, and unfinished intentions.',
     weakness: 'Consistent quest completion.',
     victory: 'The Drift has been broken. Momentum belongs to you.',
   },
   {
     name: 'The Noise Eater',
+    icon: '📡',
+    archetype: 'Alien Parasite',
+    domain: 'Distraction',
     description: 'It feeds on distraction, scrolling, and scattered attention.',
     weakness: 'Focus sessions and discipline quests.',
     victory: 'The noise has been silenced. Your focus is yours again.',
   },
   {
     name: 'The Doubt Wraith',
+    icon: '👁️',
+    archetype: 'Mind Haunter',
+    domain: 'Self-Doubt',
     description: 'It whispers that you are not ready, not worthy, and not enough.',
     weakness: 'Action before confidence.',
     victory: 'Doubt lost its voice. You moved anyway.',
   },
   {
     name: 'The Comfort Tyrant',
+    icon: '👑',
+    archetype: 'Iron King',
+    domain: 'Comfort',
     description: 'It rules through ease, softness, and avoiding hard things.',
     weakness: 'Doing the necessary thing when it is inconvenient.',
     victory: 'Comfort no longer commands you.',
   },
   {
     name: 'The Guiltborn',
+    icon: '⛓️',
+    archetype: 'Chain Demon',
+    domain: 'Shame',
     description: 'It grows from shame, regret, and the weight of yesterday.',
     weakness: 'Repentance, responsibility, and forward movement.',
     victory: 'The past did not get the final word today.',
   },
   {
     name: 'The Spiral',
+    icon: '🌀',
+    archetype: 'Reality Mage',
+    domain: 'Overthinking',
     description: 'It traps your mind in loops, what-ifs, and overthinking.',
     weakness: 'Simple next actions.',
     victory: 'The loop was cut. You returned to the present.',
   },
   {
     name: 'The False Self',
+    icon: '🎭',
+    archetype: 'Mirror Phantom',
+    domain: 'Fantasy',
     description: 'It keeps you living in fantasy instead of execution.',
     weakness: 'Real-world proof.',
     victory: 'Fantasy bowed to evidence.',
   },
   {
     name: 'The Fear Architect',
+    icon: '🏰',
+    archetype: 'Void Engineer',
+    domain: 'Fear',
     description: 'It builds walls out of failure, success, judgment, and uncertainty.',
     weakness: 'Courageous attempts.',
     victory: 'The walls cracked. You stepped forward.',
   },
   {
     name: 'The Fragmentor',
+    icon: '🧩',
+    archetype: 'Glitch Construct',
+    domain: 'Scattered Focus',
     description: 'It scatters your energy across too many unfinished paths.',
     weakness: 'Priority, focus, and completion.',
     victory: 'Your focus was reforged.',
   },
   {
     name: 'The Craving Maw',
+    icon: '🦷',
+    archetype: 'Hunger Beast',
+    domain: 'Impulse',
     description: 'It feeds on impulse, lust, escape, and quick relief.',
     weakness: 'Self-control and replacement actions.',
     victory: 'The craving passed. You remained.',
   },
   {
     name: 'The Hollow King',
+    icon: '🕳️',
+    archetype: 'Empty Monarch',
+    domain: 'Numbness',
     description: 'It drains meaning and makes progress feel empty.',
     weakness: 'Connection, gratitude, and purposeful action.',
     victory: 'Meaning returned to the throne.',
   },
   {
     name: 'The Unfinished One',
+    icon: '🪦',
+    archetype: 'Gravebound Giant',
+    domain: 'Abandoned Momentum',
     description: 'It is made of abandoned projects, broken promises, and lost momentum.',
     weakness: 'Finishing what you start.',
     victory: 'The unfinished became evidence of discipline.',
@@ -620,8 +656,11 @@ function App() {
                 <div>
                   <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
                   <h3>{weeklyBoss.name}</h3>
+                  <p className="boss-meta">
+                    {weeklyBoss.archetype} • Domain: {weeklyBoss.domain}
+                  </p>
                 </div>
-                <Skull />
+                <span className="boss-mini-icon">{weeklyBoss.icon}</span>
               </div>
               <p>{weeklyBoss.description}</p>
               <p>{driftMessage}</p>
@@ -692,7 +731,7 @@ function App() {
               </div>
 
               <div className="stat-card">
-                <Skull size={20} />
+                <span>{weeklyBoss.icon}</span>
                 <span>Weekly Boss</span>
                 <strong>{weeklyBoss.name}</strong>
               </div>
@@ -863,10 +902,13 @@ function App() {
           <section className="screen-stack">
             <div className="boss-card boss-screen">
               <div className="boss-avatar">
-                <Skull size={70} />
+                <span className="boss-icon">{weeklyBoss.icon}</span>
               </div>
               <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
               <h2>{weeklyBoss.name}</h2>
+              <p className="boss-meta">
+                {weeklyBoss.archetype} • Domain: {weeklyBoss.domain}
+              </p>
               <p>{weeklyBoss.description}</p>
               <p>
                 <strong>Weakness:</strong> {weeklyBoss.weakness}
