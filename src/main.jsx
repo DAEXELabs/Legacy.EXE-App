@@ -982,6 +982,34 @@ function App() {
               </strong>
             </div>
 
+            {bossProgress >= 100 && (
+              <div className="victory-card">
+                <div className="victory-burst">✦</div>
+
+                <p className="eyebrow">Boss Defeated</p>
+                <h2>{weeklyBoss.name} Has Fallen</h2>
+
+                <p>{weeklyBoss.victory}</p>
+
+                <div className="victory-rewards">
+                  <div>
+                    <strong>+ Legacy Proof</strong>
+                    <span>Today became evidence.</span>
+                  </div>
+
+                  <div>
+                    <strong>+ Discipline Evidence</strong>
+                    <span>You completed the required actions.</span>
+                  </div>
+
+                  <div>
+                    <strong>+ Weekly Victory Recorded</strong>
+                    <span>This boss no longer owns today.</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="quest-list">
               <div className="row-between">
                 <h3>Boss Archive</h3>
