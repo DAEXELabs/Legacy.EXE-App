@@ -833,6 +833,8 @@ function App() {
             type: chronicleDraft.type,
             caption,
             imageUrl,
+            visibility: 'public',
+            encouragementCount: 0,
             date: new Date().toISOString(),
             xp: 25,
           },
@@ -870,6 +872,34 @@ function App() {
         },
         ...(prev.bossArchive || []),
       ],
+    }));
+  }
+
+  function encourageChroniclePost(id) {
+    setState(prev => ({
+      ...prev,
+      chroniclePosts: (prev.chroniclePosts || []).map(post =>
+        post.id === id
+          ? {
+              ...post,
+              encouragementCount: Number(post.encouragementCount || 0) + 1,
+            }
+          : post
+      ),
+    }));
+  }
+
+  function toggleChronicleVisibility(id) {
+    setState(prev => ({
+      ...prev,
+      chroniclePosts: (prev.chroniclePosts || []).map(post =>
+        post.id === id
+          ? {
+              ...post,
+              visibility: post.visibility === 'private' ? 'public' : 'private',
+            }
+          : post
+      ),
     }));
   }
 
@@ -1297,11 +1327,43 @@ function App() {
               <p className="eyebrow">Chronicle</p>
               <h2>Record your proof.</h2>
               <p>
-                This is not social media. This is your evidence wall. Post progress,
-                books, discipline wins, and real-world proof of who you are becoming.
+                This is your evidence wall and showcase. Post progress, books, discipline wins,
+                and real-world proof that others can encourage.
               </p>
               <div className="chronicle-reward">
                 <Sparkles size={14} /> +25 XP per entry
+              </div>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-card">
+                <Sparkles size={20} />
+                <span>Public Proof</span>
+                <strong>
+                  {(state.chroniclePosts || []).filter(post => post.visibility !== 'private').length}
+                </strong>
+              </div>
+
+              <div className="stat-card">
+                <Shield size={20} />
+                <span>Private Proof</span>
+                <strong>
+                  {(state.chroniclePosts || []).filter(post => post.visibility === 'private').length}
+                </strong>
+              </div>
+
+              <div className="stat-card">
+                <Heart size={20} />
+                <span>Encouragements</span>
+                <strong>
+                  {(state.chroniclePosts || []).reduce((sum, post) => sum + Number(post.encouragementCount || 0), 0)}
+                </strong>
+              </div>
+
+              <div className="stat-card">
+                <Trophy size={20} />
+                <span>Featured Proof</span>
+                <strong>{(state.chroniclePosts || []).slice(0, 1).length}</strong>
               </div>
             </div>
 
@@ -1364,7 +1426,7 @@ function App() {
                         <h4>{state.playerName}</h4>
                       </div>
                       <span className="chronicle-date">
-                        {new Date(post.date).toLocaleDateString()}
+                        {post.visibility === 'private' ? 'Private' : 'Public'} • {new Date(post.date).toLocaleDateString()}
                       </span>
                     </div>
 
@@ -1380,6 +1442,24 @@ function App() {
 
                     <div className="chronicle-reward">
                       <Sparkles size={14} /> +{post.xp} XP Recorded
+                    </div>
+
+                    <div className="form-grid">
+                      <button
+                        type="button"
+                        className="ghost"
+                        onClick={() => encourageChroniclePost(post.id)}
+                      >
+                        <Heart size={16} /> Encourage ({post.encouragementCount || 0})
+                      </button>
+
+                      <button
+                        type="button"
+                        className="ghost"
+                        onClick={() => toggleChronicleVisibility(post.id)}
+                      >
+                        <Shield size={16} /> {post.visibility === 'private' ? 'Make Public' : 'Make Private'}
+                      </button>
                     </div>
                   </article>
                 ))}
@@ -1570,6 +1650,43 @@ function App() {
                     <Brain size={14} /> {readingXpEarned} Reading XP
                   </div>
                 </article>
+              </div>
+            </div>
+
+            <div className="quest-list">
+              <div className="row-between">
+                <h3>Featured Showcase</h3>
+                <span className="proof-badge">
+                  {(state.chroniclePosts || []).filter(post => post.visibility !== 'private').length} Public
+                </span>
+              </div>
+
+              {(state.chroniclePosts || []).filter(post => post.visibility !== 'private').length === 0 && (
+                <div className="profile-empty-proof">
+                  <p>No public showcase posts yet.</p>
+                  <strong>Make a Chronicle post public to feature it here.</strong>
+                </div>
+              )}
+
+              <div className="profile-proof-list">
+                {(state.chroniclePosts || [])
+                  .filter(post => post.visibility !== 'private')
+                  .slice(0, 2)
+                  .map(post => (
+                    <article className="profile-proof-card" key={post.id}>
+                      <div className="row-between">
+                        <span className="chronicle-type">{post.type}</span>
+                        <span className="chronicle-date">
+                          {post.encouragementCount || 0} Encouragements
+                        </span>
+                      </div>
+                      <h4>{post.caption}</h4>
+                      {post.imageUrl && <img src={post.imageUrl} alt={post.type} />}
+                      <div className="chronicle-reward">
+                        <Heart size={14} /> Public Proof
+                      </div>
+                    </article>
+                  ))}
               </div>
             </div>
 
