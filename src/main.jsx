@@ -47,6 +47,51 @@ const CHRONICLE_TYPES = [
   'Creative Build',
 ];
 
+const ACHIEVEMENTS = [
+  {
+    id: 'first-workout',
+    name: 'First Sweat',
+    description: 'Log your first workout proof.',
+    xp: 50,
+    title: 'Awakened Body',
+  },
+  {
+    id: 'first-book',
+    name: 'First Finished Book',
+    description: 'Complete your first book.',
+    xp: 100,
+    title: 'Knowledge Seeker',
+  },
+  {
+    id: 'first-boss',
+    name: 'Boss Breaker',
+    description: 'Archive your first boss victory.',
+    xp: 150,
+    title: 'Boss Breaker',
+  },
+  {
+    id: 'seven-streak',
+    name: 'Seven-Day Flame',
+    description: 'Reach a 7-completion streak.',
+    xp: 100,
+    title: 'Flame Keeper',
+  },
+  {
+    id: 'first-public-proof',
+    name: 'Public Proof',
+    description: 'Create your first public Chronicle post.',
+    xp: 75,
+    title: 'Proof Bearer',
+  },
+  {
+    id: 'thousand-xp',
+    name: '1000 XP Earned',
+    description: 'Reach 1000 total lifetime XP.',
+    xp: 100,
+    title: 'Rising Operator',
+  },
+];
+
 const BOSSES = [
   {
     name: 'The Drift',
@@ -211,6 +256,7 @@ const starterState = {
   avatar: '⚔️',
   title: 'Uncompiled Operator',
   xp: 0,
+  lifetimeXp: 0,
   level: 1,
   streak: 0,
   lastCompletedDate: null,
@@ -219,6 +265,7 @@ const starterState = {
   dailyReflections: {},
   chroniclePosts: [],
   bossArchive: [],
+  achievements: [],
   readingGoal: {
     currentBook: '',
     monthlyBooksTarget: 2,
@@ -475,7 +522,38 @@ function applyXpProgress(prev, xpAmount) {
     unlocked: reward.unlocked || (reward.level && nextLevel >= reward.level),
   }));
 
-  return { nextXp, nextLevel, rewards };
+  const nextLifetimeXp = Number(prev.lifetimeXp || 0) + Number(xpAmount);
+
+  return { nextXp, nextLevel, rewards, nextLifetimeXp };
+}
+
+function getAchievementIds(achievements = []) {
+  return achievements.map(achievement => achievement.id);
+}
+
+function unlockAchievements(prev, candidates = []) {
+  const unlockedIds = getAchievementIds(prev.achievements || []);
+  const freshAchievements = candidates.filter(item => !unlockedIds.includes(item.id));
+
+  if (freshAchievements.length === 0) {
+    return {
+      achievements: prev.achievements || [],
+      bonusXp: 0,
+      latestTitle: prev.title,
+    };
+  }
+
+  const now = new Date().toISOString();
+  const earned = freshAchievements.map(item => ({
+    ...item,
+    unlockedAt: now,
+  }));
+
+  return {
+    achievements: [...earned, ...(prev.achievements || [])],
+    bonusXp: earned.reduce((sum, item) => sum + Number(item.xp || 0), 0),
+    latestTitle: earned[0]?.title || prev.title,
+  };
 }
 
 function App() {
@@ -496,6 +574,8 @@ function App() {
         },
         quests: parsed.quests || starterState.quests,
         rewards: parsed.rewards || starterState.rewards,
+        lifetimeXp: parsed.lifetimeXp || parsed.xp || 0,
+        achievements: parsed.achievements || [],
         workoutLogs: parsed.workoutLogs || [],
         dailyReflections: parsed.dailyReflections || {},
         chroniclePosts: parsed.chroniclePosts || [],
@@ -627,15 +707,48 @@ function App() {
       const quest = prev.quests.find(q => q.id === id);
       if (!quest || quest.completedToday) return prev;
 
-      const { nextXp, nextLevel, rewards } = applyXpProgress(prev, Number(quest.xp));
+      let { nextXp, nextLevel, rewards, nextLifetimeXp } = applyXpProgress(prev, Number(quest.xp));
 
       const today = todayKey();
       const nextStreak = prev.lastCompletedDate === today ? prev.streak : prev.streak + 1;
 
+      const achievementCandidates = [];
+
+      if (payload.workoutLog && (prev.workoutLogs || []).length === 0) {
+        achievementCandidates.push(ACHIEVEMENTS.find(item => item.id === 'first-workout'));
+      }
+
+      if (nextStreak >= 7) {
+        achievementCandidates.push(ACHIEVEMENTS.find(item => item.id === 'seven-streak'));
+      }
+
+      if (nextLifetimeXp >= 1000) {
+        achievementCandidates.push(ACHIEVEMENTS.find(item => item.id === 'thousand-xp'));
+      }
+
+      const achievementResult = unlockAchievements(
+        { ...prev, title: prev.title },
+        achievementCandidates.filter(Boolean)
+      );
+
+      if (achievementResult.bonusXp > 0) {
+        const bonusProgress = applyXpProgress(
+          { ...prev, xp: nextXp, level: nextLevel, rewards, lifetimeXp: nextLifetimeXp },
+          achievementResult.bonusXp
+        );
+        nextXp = bonusProgress.nextXp;
+        nextLevel = bonusProgress.nextLevel;
+        rewards = bonusProgress.rewards;
+        nextLifetimeXp = bonusProgress.nextLifetimeXp;
+      }
+
       return {
         ...prev,
         xp: nextXp,
+        lifetimeXp: nextLifetimeXp,
         level: nextLevel,
+        title: achievementResult.latestTitle,
+        achievements: achievementResult.achievements,
         streak: nextStreak,
         lastCompletedDate: today,
         workoutLogs: payload.workoutLog
@@ -769,12 +882,38 @@ function App() {
       (readingDraft.completedBook ? 100 : 0);
 
     setState(prev => {
-      const { nextXp, nextLevel, rewards } = applyXpProgress(prev, xpEarned);
+      let { nextXp, nextLevel, rewards, nextLifetimeXp } = applyXpProgress(prev, xpEarned);
+
+      const achievementCandidates = [];
+
+      if (readingDraft.completedBook) {
+        achievementCandidates.push(ACHIEVEMENTS.find(item => item.id === 'first-book'));
+      }
+
+      if (nextLifetimeXp >= 1000) {
+        achievementCandidates.push(ACHIEVEMENTS.find(item => item.id === 'thousand-xp'));
+      }
+
+      const achievementResult = unlockAchievements(prev, achievementCandidates.filter(Boolean));
+
+      if (achievementResult.bonusXp > 0) {
+        const bonusProgress = applyXpProgress(
+          { ...prev, xp: nextXp, level: nextLevel, rewards, lifetimeXp: nextLifetimeXp },
+          achievementResult.bonusXp
+        );
+        nextXp = bonusProgress.nextXp;
+        nextLevel = bonusProgress.nextLevel;
+        rewards = bonusProgress.rewards;
+        nextLifetimeXp = bonusProgress.nextLifetimeXp;
+      }
 
       return {
         ...prev,
         xp: nextXp,
+        lifetimeXp: nextLifetimeXp,
         level: nextLevel,
+        title: achievementResult.latestTitle,
+        achievements: achievementResult.achievements,
         rewards,
         stats: {
           ...prev.stats,
@@ -820,12 +959,36 @@ function App() {
     if (caption.length < 5) return;
 
     setState(prev => {
-      const { nextXp, nextLevel, rewards } = applyXpProgress(prev, 25);
+      let { nextXp, nextLevel, rewards, nextLifetimeXp } = applyXpProgress(prev, 25);
+
+      const achievementCandidates = [];
+
+      if (nextLifetimeXp >= 1000) {
+        achievementCandidates.push(ACHIEVEMENTS.find(item => item.id === 'thousand-xp'));
+      }
+
+      achievementCandidates.push(ACHIEVEMENTS.find(item => item.id === 'first-public-proof'));
+
+      const achievementResult = unlockAchievements(prev, achievementCandidates.filter(Boolean));
+
+      if (achievementResult.bonusXp > 0) {
+        const bonusProgress = applyXpProgress(
+          { ...prev, xp: nextXp, level: nextLevel, rewards, lifetimeXp: nextLifetimeXp },
+          achievementResult.bonusXp
+        );
+        nextXp = bonusProgress.nextXp;
+        nextLevel = bonusProgress.nextLevel;
+        rewards = bonusProgress.rewards;
+        nextLifetimeXp = bonusProgress.nextLifetimeXp;
+      }
 
       return {
         ...prev,
         xp: nextXp,
+        lifetimeXp: nextLifetimeXp,
         level: nextLevel,
+        title: achievementResult.latestTitle,
+        achievements: achievementResult.achievements,
         rewards,
         chroniclePosts: [
           {
@@ -853,8 +1016,30 @@ function App() {
   function archiveBossVictory() {
     if (!bossDefeated || isBossArchived) return;
 
-    setState(prev => ({
+    setState(prev => {
+      let { nextXp, nextLevel, rewards, nextLifetimeXp } = applyXpProgress(prev, 0);
+
+      const achievementResult = unlockAchievements(
+        prev,
+        [ACHIEVEMENTS.find(item => item.id === 'first-boss')].filter(Boolean)
+      );
+
+      if (achievementResult.bonusXp > 0) {
+        const bonusProgress = applyXpProgress(prev, achievementResult.bonusXp);
+        nextXp = bonusProgress.nextXp;
+        nextLevel = bonusProgress.nextLevel;
+        rewards = bonusProgress.rewards;
+        nextLifetimeXp = bonusProgress.nextLifetimeXp;
+      }
+
+      return {
       ...prev,
+      xp: nextXp,
+      lifetimeXp: nextLifetimeXp,
+      level: nextLevel,
+      title: achievementResult.latestTitle,
+      achievements: achievementResult.achievements,
+      rewards,
       bossArchive: [
         {
           id: crypto.randomUUID(),
@@ -872,7 +1057,8 @@ function App() {
         },
         ...(prev.bossArchive || []),
       ],
-    }));
+    };
+    });
   }
 
   function encourageChroniclePost(id) {
@@ -1010,7 +1196,7 @@ function App() {
         </header>
 
         <nav className="tabs">
-          {['home', 'quests', 'compile', 'reading', 'chronicle', 'character', 'boss'].map(item => (
+          {['home', 'quests', 'compile', 'reading', 'chronicle', 'achievements', 'character', 'boss'].map(item => (
             <button
               key={item}
               onClick={() => setTab(item)}
@@ -1041,6 +1227,7 @@ function App() {
                   {state.xp} / {currentLevelXp}
                 </strong>
               </div>
+              <small>Lifetime XP: {state.lifetimeXp || 0}</small>
               <div className="progress-track">
                 <div className="progress-fill" style={{ width: `${progress}%` }} />
               </div>
@@ -1556,6 +1743,73 @@ function App() {
           </section>
         )}
 
+        {tab === 'achievements' && (
+          <section className="screen-stack">
+            <div className="boss-card">
+              <p className="eyebrow">Milestones / Achievements</p>
+              <h2>Proof becomes legacy.</h2>
+              <p>
+                Unlock achievements by training, reading, defeating bosses, building streaks, and showing proof.
+              </p>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-card">
+                <Trophy size={20} />
+                <span>Unlocked</span>
+                <strong>{(state.achievements || []).length}/{ACHIEVEMENTS.length}</strong>
+              </div>
+
+              <div className="stat-card">
+                <Sparkles size={20} />
+                <span>Achievement XP</span>
+                <strong>
+                  {(state.achievements || []).reduce((sum, item) => sum + Number(item.xp || 0), 0)}
+                </strong>
+              </div>
+
+              <div className="stat-card">
+                <Flame size={20} />
+                <span>Current Title</span>
+                <strong>{state.title}</strong>
+              </div>
+
+              <div className="stat-card">
+                <Coins size={20} />
+                <span>Lifetime XP</span>
+                <strong>{state.lifetimeXp || 0}</strong>
+              </div>
+            </div>
+
+            <div className="quest-list">
+              <h3>Achievement Path</h3>
+
+              {ACHIEVEMENTS.map(achievement => {
+                const unlocked = (state.achievements || []).find(item => item.id === achievement.id);
+
+                return (
+                  <div
+                    className={`reward ${unlocked ? 'unlocked' : ''}`}
+                    key={achievement.id}
+                  >
+                    <Trophy />
+                    <div>
+                      <strong>{achievement.name}</strong>
+                      <p>{achievement.description}</p>
+                      {unlocked && (
+                        <p>
+                          Unlocked {new Date(unlocked.unlockedAt).toLocaleDateString()} • Title: {achievement.title}
+                        </p>
+                      )}
+                    </div>
+                    <span>{unlocked ? `+${achievement.xp} XP` : 'Locked'}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {tab === 'character' && (
           <section className="screen-stack">
             <div className="hero-card large character-card operator-profile">
@@ -1614,6 +1868,11 @@ function App() {
               <div className="profile-metric">
                 <span>Damage Multiplier</span>
                 <strong>{streakMultiplier}x</strong>
+              </div>
+
+              <div className="profile-metric">
+                <span>Achievements</span>
+                <strong>{(state.achievements || []).length}</strong>
               </div>
             </div>
 
