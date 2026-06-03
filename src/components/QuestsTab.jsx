@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { QuestItem } from './QuestItem';
 
 export function QuestsTab({
@@ -9,6 +9,7 @@ export function QuestsTab({
   PROOF_META,
   state,
   requestQuestCompletion,
+  deleteQuest,
 }) {
   return (
     <section className="screen-stack">
@@ -84,13 +85,23 @@ export function QuestsTab({
             </div>
 
             {statQuests.map(q => (
-              <QuestItem
-                key={q.id}
-                quest={q}
-                onComplete={requestQuestCompletion}
-                STAT_META={STAT_META}
-                PROOF_META={PROOF_META}
-              />
+              <div className="quest-manage-row" key={q.id}>
+                <QuestItem
+                  quest={q}
+                  onComplete={requestQuestCompletion}
+                  STAT_META={STAT_META}
+                  PROOF_META={PROOF_META}
+                />
+
+                <button
+                  type="button"
+                  className="ghost danger"
+                  onClick={() => deleteQuest(q.id)}
+                  title="Delete quest"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             ))}
           </div>
         );
