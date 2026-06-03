@@ -49,6 +49,12 @@ import { CheckinModal } from './components/CheckinModal';
 import { TimerModal } from './components/TimerModal';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
+const QUEST_XP_MIN = 10;
+const QUEST_XP_MAX = 100;
+
+function clampQuestXp(value) {
+  return Math.min(QUEST_XP_MAX, Math.max(QUEST_XP_MIN, Number(value || QUEST_XP_MIN)));
+}
 
 const STAT_META = {
   health: { label: 'Health', icon: Activity, color: '#51ffa9' },
@@ -140,6 +146,15 @@ function App() {
   });
 
   const [newQuest, setNewQuest] = useState({
+    title: '',
+    stat: 'discipline',
+    xp: 50,
+    frequency: 'daily',
+    proof: 'honor',
+  });
+
+  const [editingQuestId, setEditingQuestId] = useState(null);
+  const [editingQuest, setEditingQuest] = useState({
     title: '',
     stat: 'discipline',
     xp: 50,
@@ -643,6 +658,8 @@ function App() {
 
     if (!newQuest.title.trim()) return;
 
+    const safeXp = clampQuestXp(newQuest.xp);
+
     setState(prev => ({
       ...prev,
       quests: [
@@ -650,7 +667,8 @@ function App() {
         {
           id: crypto.randomUUID(),
           ...newQuest,
-          xp: Number(newQuest.xp),
+          title: newQuest.title.trim(),
+          xp: safeXp,
           completedToday: false,
         },
       ],
@@ -670,6 +688,56 @@ function App() {
       ...prev,
       quests: prev.quests.filter(q => q.id !== id),
     }));
+
+    if (editingQuestId === id) {
+      cancelEditingQuest();
+    }
+  }
+
+  function startEditingQuest(quest) {
+    setEditingQuestId(quest.id);
+    setEditingQuest({
+      title: quest.title,
+      stat: quest.stat,
+      xp: clampQuestXp(quest.xp),
+      frequency: quest.frequency,
+      proof: quest.proof,
+    });
+  }
+
+  function cancelEditingQuest() {
+    setEditingQuestId(null);
+    setEditingQuest({
+      title: '',
+      stat: 'discipline',
+      xp: 50,
+      frequency: 'daily',
+      proof: 'honor',
+    });
+  }
+
+  function saveEditingQuest(e) {
+    e.preventDefault();
+
+    if (!editingQuestId || !editingQuest.title.trim()) return;
+
+    const safeXp = clampQuestXp(editingQuest.xp);
+
+    setState(prev => ({
+      ...prev,
+      quests: prev.quests.map(q =>
+        q.id === editingQuestId
+          ? {
+              ...q,
+              ...editingQuest,
+              title: editingQuest.title.trim(),
+              xp: safeXp,
+            }
+          : q
+      ),
+    }));
+
+    cancelEditingQuest();
   }
 
   function resetDay() {
@@ -1034,6 +1102,7 @@ function App() {
           <section className="screen-stack">
             <form className="form-card" onSubmit={addQuest}>
               <h3>Create Quest</h3>
+              <p>XP is capped from {QUEST_XP_MIN} to {QUEST_XP_MAX} based on difficulty.</p>
 
               <input
                 value={newQuest.title}
@@ -1055,10 +1124,11 @@ function App() {
 
                 <input
                   type="number"
-                  min="10"
+                  min={QUEST_XP_MIN}
+                  max={QUEST_XP_MAX}
                   step="5"
                   value={newQuest.xp}
-                  onChange={e => setNewQuest({ ...newQuest, xp: e.target.value })}
+                  onChange={e => setNewQuest({ ...newQuest, xp: clampQuestXp(e.target.value) })}
                 />
               </div>
 
@@ -1106,13 +1176,93 @@ function App() {
                   </div>
 
                   {statQuests.map(q => (
-                    <QuestItem
-                      key={q.id}
-                      quest={q}
-                      onComplete={requestQuestCompletion}
-                      STAT_META={STAT_META}
-                      PROOF_META={PROOF_META}
-                    />
+                    <div className="quest-edit-shell" key={q.id}>
+                      <div className="quest-manage-row">
+                        <QuestItem
+                          quest={q}
+                          onComplete={requestQuestCompletion}
+                          STAT_META={STAT_META}
+                          PROOF_META={PROOF_META}
+                        />
+
+                        <div className="quest-manage-actions">
+                          <button
+                            type="button"
+                            className="ghost"
+                            onClick={() => startEditingQuest(q)}
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="ghost danger"
+                            onClick={() => deleteQuest(q.id)}
+                            title="Delete quest"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+
+                      {editingQuestId === q.id && (
+                        <form className="form-card quest-edit-form" onSubmit={saveEditingQuest}>
+                          <input
+                            value={editingQuest.title}
+                            onChange={e => setEditingQuest({ ...editingQuest, title: e.target.value })}
+                            placeholder="Quest title"
+                          />
+
+                          <div className="form-grid">
+                            <select
+                              value={editingQuest.stat}
+                              onChange={e => setEditingQuest({ ...editingQuest, stat: e.target.value })}
+                            >
+                              {Object.entries(STAT_META).map(([key, meta]) => (
+                                <option key={key} value={key}>
+                                  {meta.label}
+                                </option>
+                              ))}
+                            </select>
+
+                            <input
+                              type="number"
+                              min={QUEST_XP_MIN}
+                              max={QUEST_XP_MAX}
+                              step="5"
+                              value={editingQuest.xp}
+                              onChange={e => setEditingQuest({ ...editingQuest, xp: clampQuestXp(e.target.value) })}
+                            />
+                          </div>
+
+                          <div className="form-grid">
+                            <input
+                              value={editingQuest.frequency}
+                              onChange={e => setEditingQuest({ ...editingQuest, frequency: e.target.value })}
+                              placeholder="daily, weekly, 3x weekly"
+                            />
+
+                            <select
+                              value={editingQuest.proof}
+                              onChange={e => setEditingQuest({ ...editingQuest, proof: e.target.value })}
+                            >
+                              {Object.entries(PROOF_META).map(([key, meta]) => (
+                                <option key={key} value={key}>
+                                  {meta.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="quest-edit-actions">
+                            <button className="primary" type="submit">Save Quest</button>
+                            <button className="ghost" type="button" onClick={cancelEditingQuest}>Cancel</button>
+                          </div>
+
+                          <small>XP is capped from {QUEST_XP_MIN} to {QUEST_XP_MAX} to keep progression fair.</small>
+                        </form>
+                      )}
+                    </div>
                   ))}
                 </div>
               );
