@@ -40,6 +40,9 @@ import {
 } from './data/workoutRegimens';
 import { starterState } from './data/starterState';
 import { ChronicleTab } from './components/ChronicleTab';
+import { ReadingTab } from './components/ReadingTab';
+import { BossTab } from './components/BossTab';
+import { CharacterTab } from './components/CharacterTab';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 
@@ -990,158 +993,15 @@ function App() {
         )}
 
         {tab === 'reading' && (
-          <section className="screen-stack">
-            <div className="boss-card">
-              <p className="eyebrow">Reading Campaign</p>
-              <h2>Build the Knowledge stat.</h2>
-              <p>
-                Track books, chapters, and pages. Reading progress earns XP and strengthens your Knowledge path.
-              </p>
-            </div>
-
-            <div className="stats-grid">
-              <div className="stat-card">
-                <Brain size={20} />
-                <span>Books Completed</span>
-                <strong>
-                  {readingGoal.booksCompleted}/{readingGoal.monthlyBooksTarget}
-                </strong>
-              </div>
-
-              <div className="stat-card">
-                <MessageSquareText size={20} />
-                <span>Chapters Completed</span>
-                <strong>
-                  {readingGoal.chaptersCompleted}/{readingGoal.monthlyChaptersTarget}
-                </strong>
-              </div>
-
-              <div className="stat-card">
-                <Sparkles size={20} />
-                <span>Reading XP</span>
-                <strong>{readingXpEarned}</strong>
-              </div>
-
-              <div className="stat-card">
-                <Brain size={20} />
-                <span>Pages Read</span>
-                <strong>{readingGoal.pagesRead}</strong>
-              </div>
-            </div>
-
-            <div className="xp-card">
-              <div className="row-between">
-                <span>Monthly Book Goal</span>
-                <strong>{booksProgress}%</strong>
-              </div>
-              <div className="progress-track">
-                <div className="progress-fill" style={{ width: `${booksProgress}%` }} />
-              </div>
-            </div>
-
-            <div className="xp-card">
-              <div className="row-between">
-                <span>Monthly Chapter Goal</span>
-                <strong>{chaptersProgress}%</strong>
-              </div>
-              <div className="progress-track">
-                <div className="progress-fill boss" style={{ width: `${chaptersProgress}%` }} />
-              </div>
-            </div>
-
-            <form className="form-card" onSubmit={logReadingProgress}>
-              <h3>Log Reading Progress</h3>
-
-              <input
-                value={readingDraft.currentBook}
-                onChange={e =>
-                  setReadingDraft({ ...readingDraft, currentBook: e.target.value })
-                }
-                placeholder="Current book"
-              />
-
-              <div className="form-grid">
-                <input
-                  type="number"
-                  min="0"
-                  value={readingDraft.chapters}
-                  onChange={e =>
-                    setReadingDraft({ ...readingDraft, chapters: e.target.value })
-                  }
-                  placeholder="Chapters read"
-                />
-
-                <input
-                  type="number"
-                  min="0"
-                  value={readingDraft.pages}
-                  onChange={e =>
-                    setReadingDraft({ ...readingDraft, pages: e.target.value })
-                  }
-                  placeholder="Pages read"
-                />
-              </div>
-
-              <label className="reward unlocked">
-                <CheckCircle2 />
-                <div>
-                  <strong>Completed the book?</strong>
-                  <p>Adds a 100 XP completion bonus.</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={readingDraft.completedBook}
-                  onChange={e =>
-                    setReadingDraft({ ...readingDraft, completedBook: e.target.checked })
-                  }
-                />
-              </label>
-
-              <button
-                className="primary"
-                disabled={
-                  !readingDraft.currentBook.trim() ||
-                  (
-                    Number(readingDraft.chapters || 0) <= 0 &&
-                    Number(readingDraft.pages || 0) <= 0 &&
-                    !readingDraft.completedBook
-                  )
-                }
-              >
-                <Plus size={18} /> Log Reading XP
-              </button>
-            </form>
-
-            <div className="quest-list">
-              <div className="row-between">
-                <h3>Reading Log</h3>
-                <span className="proof-badge">
-                  {(readingGoal.readingLogs || []).length} Entries
-                </span>
-              </div>
-
-              {(readingGoal.readingLogs || []).length === 0 && (
-                <div className="empty-state">
-                  <p>No reading logged yet.</p>
-                  <strong>Your next chapter starts the campaign.</strong>
-                </div>
-              )}
-
-              {(readingGoal.readingLogs || []).map(log => (
-                <div className="reward unlocked" key={log.id}>
-                  <Brain />
-                  <div>
-                    <strong>{log.book}</strong>
-                    <p>
-                      {log.chapters} chapters • {log.pages} pages • {new Date(log.date).toLocaleDateString()}
-                    </p>
-                    {log.completedBook && <p>Book completed.</p>}
-                  </div>
-                  <span>+{log.xp} XP</span>
-                </div>
-              ))}
-            </div>
-          </section>
+          <ReadingTab
+            readingGoal={readingGoal}
+            readingDraft={readingDraft}
+            setReadingDraft={setReadingDraft}
+            logReadingProgress={logReadingProgress}
+            booksProgress={booksProgress}
+            chaptersProgress={chaptersProgress}
+            readingXpEarned={readingXpEarned}
+          />
         )}
 
         {tab === 'chronicle' && (
@@ -1313,342 +1173,38 @@ function App() {
         )}
 
         {tab === 'character' && (
-          <section className="screen-stack">
-            <div className="hero-card large character-card operator-profile">
-              <div className={`avatar big ${dominantStat}`}>{state.avatar}</div>
-              <div>
-                <p className="eyebrow">Operator Profile • {tier}</p>
-                <h2>{state.playerName}</h2>
-                <p>{state.title}</p>
-                <p>Level {state.level} • Streak: {state.streak} completions</p>
-              </div>
-            </div>
-
-            <div className="profile-metrics">
-              <div className="profile-metric">
-                <span>Chronicle Entries</span>
-                <strong>{(state.chroniclePosts || []).length}</strong>
-              </div>
-
-              <div className="profile-metric">
-                <span>Boss Progress</span>
-                <strong>{bossProgress}%</strong>
-              </div>
-
-              <div className="profile-metric">
-                <span>Quests Today</span>
-                <strong>
-                  {completedToday}/{state.quests.length}
-                </strong>
-              </div>
-
-              <div className="profile-metric">
-                <span>XP Today</span>
-                <strong>{dailyXpEarned}</strong>
-              </div>
-
-              <div className="profile-metric">
-                <span>Strongest Stat</span>
-                <strong>{STAT_META[strongestStat[0]].label}</strong>
-              </div>
-
-              <div className="profile-metric">
-                <span>Workout Logs</span>
-                <strong>{(state.workoutLogs || []).length}</strong>
-              </div>
-
-              <div className="profile-metric">
-                <span>Workout Tier</span>
-                <strong>{workoutRegimen.name}</strong>
-              </div>
-
-              <div className="profile-metric">
-                <span>Bosses Defeated</span>
-                <strong>{(state.bossArchive || []).length}</strong>
-              </div>
-
-              <div className="profile-metric">
-                <span>Damage Multiplier</span>
-                <strong>{streakMultiplier}x</strong>
-              </div>
-
-              <div className="profile-metric">
-                <span>Achievements</span>
-                <strong>{(state.achievements || []).length}</strong>
-              </div>
-            </div>
-
-            <div className="stats-grid">
-              {Object.entries(STAT_META).map(([key, meta]) => {
-                const Icon = meta.icon;
-                return (
-                  <div className="stat-card" key={key}>
-                    <Icon size={20} />
-                    <span>{meta.label}</span>
-                    <strong>{state.stats[key]}</strong>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="quest-list">
-              <div className="row-between">
-                <h3>Reading Campaign</h3>
-                <span className="proof-badge">{booksProgress}% Books</span>
-              </div>
-
-              <div className="profile-proof-list">
-                <article className="profile-proof-card">
-                  <div className="row-between">
-                    <span className="chronicle-type">Current Book</span>
-                    <span className="chronicle-date">{readingGoal.pagesRead} pages</span>
-                  </div>
-                  <h4>{readingGoal.currentBook || 'No book selected yet'}</h4>
-                  <p>
-                    {readingGoal.booksCompleted}/{readingGoal.monthlyBooksTarget} books • {readingGoal.chaptersCompleted}/{readingGoal.monthlyChaptersTarget} chapters
-                  </p>
-                  <div className="chronicle-reward">
-                    <Brain size={14} /> {readingXpEarned} Reading XP
-                  </div>
-                </article>
-              </div>
-            </div>
-
-            <div className="quest-list">
-              <div className="row-between">
-                <h3>Featured Showcase</h3>
-                <span className="proof-badge">
-                  {(state.chroniclePosts || []).filter(post => post.visibility !== 'private').length} Public
-                </span>
-              </div>
-
-              {(state.chroniclePosts || []).filter(post => post.visibility !== 'private').length === 0 && (
-                <div className="profile-empty-proof">
-                  <p>No public showcase posts yet.</p>
-                  <strong>Make a Chronicle post public to feature it here.</strong>
-                </div>
-              )}
-
-              <div className="profile-proof-list">
-                {(state.chroniclePosts || [])
-                  .filter(post => post.visibility !== 'private')
-                  .slice(0, 2)
-                  .map(post => (
-                    <article className="profile-proof-card" key={post.id}>
-                      <div className="row-between">
-                        <span className="chronicle-type">{post.type}</span>
-                        <span className="chronicle-date">
-                          {post.encouragementCount || 0} Encouragements
-                        </span>
-                      </div>
-                      <h4>{post.caption}</h4>
-                      {post.imageUrl && <img src={post.imageUrl} alt={post.type} />}
-                      <div className="chronicle-reward">
-                        <Heart size={14} /> Public Proof
-                      </div>
-                    </article>
-                  ))}
-              </div>
-            </div>
-
-            <div className="quest-list">
-              <div className="row-between">
-                <h3>Recent Proof</h3>
-                <span className="proof-badge">
-                  {(state.chroniclePosts || []).slice(0, 3).length}/3
-                </span>
-              </div>
-
-              {(state.chroniclePosts || []).length === 0 && (
-                <div className="profile-empty-proof">
-                  <p>No Chronicle proof recorded yet.</p>
-                  <strong>Record your first entry in Chronicle.</strong>
-                </div>
-              )}
-
-              <div className="profile-proof-list">
-                {(state.chroniclePosts || []).slice(0, 3).map(post => (
-                  <article className="profile-proof-card" key={post.id}>
-                    <div className="row-between">
-                      <span className="chronicle-type">{post.type}</span>
-                      <span className="chronicle-date">
-                        {new Date(post.date).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    <h4>{post.caption}</h4>
-
-                    {post.imageUrl && (
-                      <img src={post.imageUrl} alt={post.type} />
-                    )}
-
-                    <div className="chronicle-reward">
-                      <Sparkles size={14} /> +{post.xp} XP Proof
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-
-            <div className="quest-list">
-              <h3>Unlocks</h3>
-
-              {state.rewards.map(reward => (
-                <div
-                  className={`reward ${reward.unlocked ? 'unlocked' : ''}`}
-                  key={reward.id}
-                >
-                  <Trophy />
-                  <div>
-                    <strong>{reward.name}</strong>
-                    <p>{reward.requirement}</p>
-                  </div>
-                  <span>{reward.unlocked ? 'Unlocked' : 'Locked'}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+          <CharacterTab
+            state={state}
+            dominantStat={dominantStat}
+            tier={tier}
+            STAT_META={STAT_META}
+            strongestStat={strongestStat}
+            workoutRegimen={workoutRegimen}
+            streakMultiplier={streakMultiplier}
+            bossProgress={bossProgress}
+            completedToday={completedToday}
+            dailyXpEarned={dailyXpEarned}
+            readingGoal={readingGoal}
+            booksProgress={booksProgress}
+            readingXpEarned={readingXpEarned}
+          />
         )}
 
         {tab === 'boss' && (
-          <section className="screen-stack">
-            <div className="boss-card boss-screen">
-              <div className="boss-avatar">
-                <span className="boss-icon">{weeklyBoss.icon}</span>
-              </div>
-              <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
-              <h2>{weeklyBoss.name}</h2>
-              <p className="boss-meta">
-                {weeklyBoss.archetype} • Domain: {weeklyBoss.domain}
-              </p>
-              <p className="boss-meta">
-                HP: {bossHpRemaining} / {weeklyBoss.hp}
-              </p>
-              <p className="boss-meta">
-                Base Damage: {baseBossDamage} • Streak Multiplier: {streakMultiplier}x
-              </p>
-              <p>{weeklyBoss.description}</p>
-              <p>
-                <strong>Weakness:</strong> {weeklyBoss.weakness}
-              </p>
-
-              <div className="codex-card">
-                <p className="eyebrow">Codex Entry</p>
-                <h3>{weeklyBoss.domain}</h3>
-                <p>{weeklyBoss.codex}</p>
-
-                <div className="codex-row">
-                  <strong>Real-life form</strong>
-                  <p>{weeklyBoss.realLifeForm}</p>
-                </div>
-
-                <div className="codex-row">
-                  <strong>Countermeasure</strong>
-                  <p>{weeklyBoss.countermeasure}</p>
-                </div>
-              </div>
-
-              <p>{driftMessage}</p>
-              <div className="progress-track">
-                <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
-              </div>
-              <strong>
-                {bossProgress >= 100
-                  ? 'Victory State Unlocked'
-                  : `${bossHpRemaining} HP Remaining`}
-              </strong>
-
-              {bossDefeated && !isBossArchived && (
-                <button className="primary" onClick={archiveBossVictory}>
-                  <Trophy size={18} /> Archive Victory
-                </button>
-              )}
-
-              {isBossArchived && (
-                <div className="chronicle-reward">
-                  <Trophy size={14} /> Victory Archived
-                </div>
-              )}
-            </div>
-
-            <div className="quest-list">
-              <h3>Victory Conditions</h3>
-
-              <div className="reward unlocked">
-                <Flame />
-                <div>
-                  <strong>Complete quests</strong>
-                  <p>Quest XP and Chronicle proof damage {weeklyBoss.name}.</p>
-                </div>
-                <span>
-                  {completedToday}/{state.quests.length}
-                </span>
-              </div>
-
-              <div className={`reward ${completedToday >= 3 ? 'unlocked' : ''}`}>
-                <Sparkles />
-                <div>
-                  <strong>Complete 3 today</strong>
-                  <p>Reach a daily momentum threshold.</p>
-                </div>
-                <span>{completedToday >= 3 ? 'Done' : 'Pending'}</span>
-              </div>
-
-              <div className={`reward ${streakMultiplier > 1 ? 'unlocked' : ''}`}>
-                <Flame />
-                <div>
-                  <strong>Streak Damage Multiplier</strong>
-                  <p>3 days: 1.1x • 7 days: 1.25x • 14 days: 1.5x • 30 days: 2x.</p>
-                </div>
-                <span>{streakMultiplier}x</span>
-              </div>
-
-              <div className={`reward ${state.streak >= 3 ? 'unlocked' : ''}`}>
-                <Shield />
-                <div>
-                  <strong>Build a 3-completion streak</strong>
-                  <p>Prove you can return to the system.</p>
-                </div>
-                <span>{state.streak >= 3 ? 'Done' : 'Pending'}</span>
-              </div>
-            </div>
-
-            <div className="quest-list">
-              <div className="row-between">
-                <h3>Boss Archive</h3>
-                <span className="proof-badge">
-                  {(state.bossArchive || []).length} Defeated
-                </span>
-              </div>
-
-              {(state.bossArchive || []).length === 0 && (
-                <div className="empty-state">
-                  <p>No bosses archived yet.</p>
-                  <strong>Defeat a weekly boss to begin the campaign record.</strong>
-                </div>
-              )}
-
-              {(state.bossArchive || []).map(entry => (
-                <div className="reward unlocked" key={entry.id}>
-                  <span className="boss-mini-icon">{entry.icon}</span>
-                  <div>
-                    <strong>{entry.name}</strong>
-                    <p>
-                      {entry.domain} • Week {entry.week} •{' '}
-                      {new Date(entry.defeatedAt).toLocaleDateString()}
-                    </p>
-                    <p>{entry.damageDealt} damage dealt / {entry.hp} HP • {entry.multiplier || 1}x</p>
-                    <p>{entry.victory}</p>
-                  </div>
-                  <span>Defeated</span>
-                </div>
-              ))}
-            </div>
-
-            <button className="danger" onClick={resetApp}>
-              Reset Operator
-            </button>
-          </section>
+          <BossTab
+            state={state}
+            weeklyBoss={weeklyBoss}
+            bossHpRemaining={bossHpRemaining}
+            baseBossDamage={baseBossDamage}
+            streakMultiplier={streakMultiplier}
+            driftMessage={driftMessage}
+            bossProgress={bossProgress}
+            bossDefeated={bossDefeated}
+            isBossArchived={isBossArchived}
+            archiveBossVictory={archiveBossVictory}
+            completedToday={completedToday}
+            resetApp={resetApp}
+          />
         )}
       </section>
 
