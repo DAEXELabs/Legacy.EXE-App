@@ -38,6 +38,7 @@ import {
   getWorkoutTier,
   getRegimenTotals,
 } from './data/workoutRegimens';
+import { starterState } from './data/starterState';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 
@@ -65,102 +66,6 @@ const CHRONICLE_TYPES = [
   'Relationship Win',
   'Creative Build',
 ];
-
-const starterState = {
-  playerName: '',
-  avatar: '⚔️',
-  title: 'Uncompiled Operator',
-  xp: 0,
-  lifetimeXp: 0,
-  level: 1,
-  streak: 0,
-  lastCompletedDate: null,
-  onboarded: false,
-  workoutLogs: [],
-  dailyReflections: {},
-  chroniclePosts: [],
-  bossArchive: [],
-  achievements: [],
-  readingGoal: {
-    currentBook: '',
-    monthlyBooksTarget: 2,
-    monthlyChaptersTarget: 12,
-    booksCompleted: 0,
-    chaptersCompleted: 0,
-    pagesRead: 0,
-    readingLogs: [],
-  },
-  stats: {
-    health: 0,
-    knowledge: 0,
-    wealth: 0,
-    relationships: 0,
-    creativity: 0,
-    discipline: 0,
-  },
-  quests: [
-    {
-      id: crypto.randomUUID(),
-      title: 'Workout 30 minutes',
-      stat: 'health',
-      xp: 100,
-      frequency: 'daily',
-      proof: 'workout',
-      completedToday: false,
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Read or study 20 minutes',
-      stat: 'knowledge',
-      xp: 50,
-      frequency: 'daily',
-      proof: 'checkin',
-      completedToday: false,
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Intentional family time',
-      stat: 'relationships',
-      xp: 50,
-      frequency: 'daily',
-      proof: 'checkin',
-      completedToday: false,
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Focus session 25 minutes',
-      stat: 'discipline',
-      xp: 75,
-      frequency: 'daily',
-      proof: 'timer',
-      completedToday: false,
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Budget check-in',
-      stat: 'wealth',
-      xp: 25,
-      frequency: 'daily',
-      proof: 'honor',
-      completedToday: false,
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Creative session 30 minutes',
-      stat: 'creativity',
-      xp: 50,
-      frequency: 'daily',
-      proof: 'timer',
-      completedToday: false,
-    },
-  ],
-  rewards: [
-    { id: 1, name: 'Uncompiled', requirement: 'Start your journey', unlocked: true },
-    { id: 2, name: 'Initiate Frame', requirement: 'Reach Level 3', unlocked: false, level: 3 },
-    { id: 3, name: 'Builder Armor', requirement: 'Reach Level 5', unlocked: false, level: 5 },
-    { id: 4, name: 'Ascendant Aura', requirement: 'Reach Level 10', unlocked: false, level: 10 },
-  ],
-};
 
 function getAchievementIds(achievements = []) {
   return achievements.map(achievement => achievement.id);
