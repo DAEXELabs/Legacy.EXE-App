@@ -52,6 +52,17 @@ const STORAGE_KEY = 'legacy-exe-state-v2';
 const QUEST_XP_MIN = 10;
 const QUEST_XP_MAX = 100;
 
+const QUEST_DIFFICULTY_PRESETS = {
+  easy: { label: 'Easy', xp: 25 },
+  normal: { label: 'Normal', xp: 50 },
+  hard: { label: 'Hard', xp: 75 },
+  major: { label: 'Major', xp: 100 },
+};
+
+function getDifficultyXp(difficulty) {
+  return QUEST_DIFFICULTY_PRESETS[difficulty]?.xp || QUEST_DIFFICULTY_PRESETS.normal.xp;
+}
+
 function clampQuestXp(value) {
   return Math.min(QUEST_XP_MAX, Math.max(QUEST_XP_MIN, Number(value || QUEST_XP_MIN)));
 }
@@ -148,6 +159,7 @@ function App() {
   const [newQuest, setNewQuest] = useState({
     title: '',
     stat: 'discipline',
+    difficulty: 'normal',
     xp: 50,
     frequency: 'daily',
     proof: 'honor',
@@ -157,6 +169,7 @@ function App() {
   const [editingQuest, setEditingQuest] = useState({
     title: '',
     stat: 'discipline',
+    difficulty: 'normal',
     xp: 50,
     frequency: 'daily',
     proof: 'honor',
@@ -658,7 +671,8 @@ function App() {
 
     if (!newQuest.title.trim()) return;
 
-    const safeXp = clampQuestXp(newQuest.xp);
+    const difficulty = newQuest.difficulty || 'normal';
+    const safeXp = clampQuestXp(getDifficultyXp(difficulty));
 
     setState(prev => ({
       ...prev,
@@ -668,6 +682,7 @@ function App() {
           id: crypto.randomUUID(),
           ...newQuest,
           title: newQuest.title.trim(),
+          difficulty,
           xp: safeXp,
           completedToday: false,
         },
@@ -677,6 +692,7 @@ function App() {
     setNewQuest({
       title: '',
       stat: 'discipline',
+      difficulty: 'normal',
       xp: 50,
       frequency: 'daily',
       proof: 'honor',
@@ -699,7 +715,8 @@ function App() {
     setEditingQuest({
       title: quest.title,
       stat: quest.stat,
-      xp: clampQuestXp(quest.xp),
+      difficulty: quest.difficulty || 'normal',
+      xp: clampQuestXp(getDifficultyXp(quest.difficulty || 'normal')),
       frequency: quest.frequency,
       proof: quest.proof,
     });
@@ -710,6 +727,7 @@ function App() {
     setEditingQuest({
       title: '',
       stat: 'discipline',
+      difficulty: 'normal',
       xp: 50,
       frequency: 'daily',
       proof: 'honor',
@@ -721,7 +739,8 @@ function App() {
 
     if (!editingQuestId || !editingQuest.title.trim()) return;
 
-    const safeXp = clampQuestXp(editingQuest.xp);
+    const difficulty = editingQuest.difficulty || 'normal';
+    const safeXp = clampQuestXp(getDifficultyXp(difficulty));
 
     setState(prev => ({
       ...prev,
@@ -731,6 +750,7 @@ function App() {
               ...q,
               ...editingQuest,
               title: editingQuest.title.trim(),
+              difficulty,
               xp: safeXp,
             }
           : q
@@ -1102,7 +1122,7 @@ function App() {
           <section className="screen-stack">
             <form className="form-card" onSubmit={addQuest}>
               <h3>Create Quest</h3>
-              <p>XP is capped from {QUEST_XP_MIN} to {QUEST_XP_MAX} based on difficulty.</p>
+              <p>Choose a difficulty preset. XP is assigned automatically and capped at {QUEST_XP_MAX}.</p>
 
               <input
                 value={newQuest.title}
@@ -1122,14 +1142,23 @@ function App() {
                   ))}
                 </select>
 
-                <input
-                  type="number"
-                  min={QUEST_XP_MIN}
-                  max={QUEST_XP_MAX}
-                  step="5"
-                  value={newQuest.xp}
-                  onChange={e => setNewQuest({ ...newQuest, xp: clampQuestXp(e.target.value) })}
-                />
+                <select
+                  value={newQuest.difficulty}
+                  onChange={e => {
+                    const difficulty = e.target.value;
+                    setNewQuest({
+                      ...newQuest,
+                      difficulty,
+                      xp: getDifficultyXp(difficulty),
+                    });
+                  }}
+                >
+                  {Object.entries(QUEST_DIFFICULTY_PRESETS).map(([key, preset]) => (
+                    <option key={key} value={key}>
+                      {preset.label} - {preset.xp} XP
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-grid">
@@ -1225,14 +1254,23 @@ function App() {
                               ))}
                             </select>
 
-                            <input
-                              type="number"
-                              min={QUEST_XP_MIN}
-                              max={QUEST_XP_MAX}
-                              step="5"
-                              value={editingQuest.xp}
-                              onChange={e => setEditingQuest({ ...editingQuest, xp: clampQuestXp(e.target.value) })}
-                            />
+                            <select
+                              value={editingQuest.difficulty}
+                              onChange={e => {
+                                const difficulty = e.target.value;
+                                setEditingQuest({
+                                  ...editingQuest,
+                                  difficulty,
+                                  xp: getDifficultyXp(difficulty),
+                                });
+                              }}
+                            >
+                              {Object.entries(QUEST_DIFFICULTY_PRESETS).map(([key, preset]) => (
+                                <option key={key} value={key}>
+                                  {preset.label} - {preset.xp} XP
+                                </option>
+                              ))}
+                            </select>
                           </div>
 
                           <div className="form-grid">
@@ -1259,7 +1297,7 @@ function App() {
                             <button className="ghost" type="button" onClick={cancelEditingQuest}>Cancel</button>
                           </div>
 
-                          <small>XP is capped from {QUEST_XP_MIN} to {QUEST_XP_MAX} to keep progression fair.</small>
+                          <small>Difficulty controls XP automatically to keep progression fair.</small>
                         </form>
                       )}
                     </div>
