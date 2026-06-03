@@ -108,6 +108,9 @@ textarea { min-height: 96px; resize: vertical; }
 .profile-proof-card img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 14px; border: 1px solid rgba(255,255,255,.1); }
 .profile-empty-proof { padding: 14px; border-radius: 18px; background: rgba(0,0,0,.18); border: 1px dashed rgba(255,255,255,.14); }
 .empty-state { padding: 18px; border-radius: 20px; background: rgba(0,0,0,.18); border: 1px dashed rgba(255,255,255,.16); text-align: center; }
+.quest-manage-row { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; align-items: stretch; }
+.ghost.danger { color: #ff6b6b; border-color: rgba(255, 107, 107, 0.35); }
+.ghost.danger:hover { background: rgba(255, 107, 107, 0.12); }
 @keyframes victory-spin { to { transform: rotate(360deg); } }
 @media (max-width: 460px) {
   .app-shell { padding: 0; }
