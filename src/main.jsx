@@ -1911,70 +1911,94 @@ function App() {
             </div>
 
             <div className="form-grid">
-              <select
-                value={workoutProof.type}
-                onChange={e =>
-                  setWorkoutProof({ ...workoutProof, type: e.target.value })
-                }
-              >
-                <option>Strength</option>
-                <option>Cardio</option>
-                <option>Mobility</option>
-                <option>Sport</option>
-                <option>Other</option>
-              </select>
+              <label>
+                <span>Workout Type</span>
+                <small>What kind of training did you do?</small>
+                <select
+                  value={workoutProof.type}
+                  onChange={e =>
+                    setWorkoutProof({ ...workoutProof, type: e.target.value })
+                  }
+                >
+                  <option>Strength</option>
+                  <option>Cardio</option>
+                  <option>Mobility</option>
+                  <option>Sport</option>
+                  <option>Other</option>
+                </select>
+              </label>
 
-              <input
-                type="number"
-                min="0"
-                value={workoutProof.duration}
-                onChange={e =>
-                  setWorkoutProof({ ...workoutProof, duration: e.target.value })
-                }
-                placeholder="Minutes"
-              />
+              <label>
+                <span>Duration Minutes</span>
+                <small>How many minutes did you train?</small>
+                <input
+                  type="number"
+                  min="0"
+                  value={workoutProof.duration}
+                  onChange={e =>
+                    setWorkoutProof({ ...workoutProof, duration: e.target.value })
+                  }
+                  placeholder="Example: 30"
+                />
+              </label>
             </div>
 
             <div className="form-grid">
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={workoutProof.effort}
-                onChange={e =>
-                  setWorkoutProof({ ...workoutProof, effort: e.target.value })
-                }
-                placeholder="Effort 1-10"
-              />
+              <label>
+                <span>Effort Level</span>
+                <small>1 = easy, 10 = all out.</small>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={workoutProof.effort}
+                  onChange={e =>
+                    setWorkoutProof({ ...workoutProof, effort: e.target.value })
+                  }
+                  placeholder="Example: 6"
+                />
+              </label>
 
+              <label>
+                <span>Total Sets</span>
+                <small>Count all sets completed across the workout.</small>
+                <input
+                  type="number"
+                  min="0"
+                  value={workoutProof.sets}
+                  onChange={e =>
+                    setWorkoutProof({ ...workoutProof, sets: e.target.value })
+                  }
+                  placeholder="Example: 6"
+                />
+              </label>
+            </div>
+
+            <label>
+              <span>Total Reps</span>
+              <small>Approximate total reps completed. Cardio users can enter 0.</small>
               <input
                 type="number"
                 min="0"
-                value={workoutProof.sets}
+                value={workoutProof.reps}
                 onChange={e =>
-                  setWorkoutProof({ ...workoutProof, sets: e.target.value })
+                  setWorkoutProof({ ...workoutProof, reps: e.target.value })
                 }
-                placeholder="Sets"
+                placeholder="Example: 60"
               />
-            </div>
+            </label>
 
-            <input
-              type="number"
-              min="0"
-              value={workoutProof.reps}
-              onChange={e =>
-                setWorkoutProof({ ...workoutProof, reps: e.target.value })
-              }
-              placeholder="Reps"
-            />
-
-            <textarea
-              value={workoutProof.notes}
-              onChange={e =>
-                setWorkoutProof({ ...workoutProof, notes: e.target.value })
-              }
-              placeholder="What did you actually do?"
-            />
+            <label>
+              <span>Workout Notes</span>
+              <small>Briefly describe what you actually did.</small>
+              <textarea
+                value={workoutProof.notes}
+                onChange={e =>
+                  setWorkoutProof({ ...workoutProof, notes: e.target.value })
+                }
+                placeholder="Example: Pushups, squats, plank, and 10 minutes walking."
+              />
+            </label>
 
             <div className="kpi-score">
               Effort Score: {calculateEffortScore(workoutProof)}
