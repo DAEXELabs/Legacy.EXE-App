@@ -11,6 +11,8 @@ import {
   Plus,
   CheckCircle2,
   RotateCcw,
+  Upload,
+  Download,
   Flame,
   Skull,
   Sparkles,
@@ -600,6 +602,7 @@ function App() {
   });
 
   const [tab, setTab] = useState('home');
+  const [backupMessage, setBackupMessage] = useState('');
   const [dailyReflection, setDailyReflection] = useState('');
   const [readingDraft, setReadingDraft] = useState({
     currentBook: state.readingGoal?.currentBook || '',
@@ -1123,6 +1126,73 @@ function App() {
     }));
   }
 
+  function exportSaveData() {
+    const payload = {
+      app: 'Legacy.EXE',
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      state,
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: 'application/json',
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `legacy-exe-save-${todayKey()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    setBackupMessage('Save file exported.');
+  }
+
+  function importSaveData(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const importedState = parsed.state || parsed;
+
+        setState({
+          ...starterState,
+          ...importedState,
+          stats: {
+            ...starterState.stats,
+            ...(importedState.stats || {}),
+          },
+          quests: importedState.quests || starterState.quests,
+          rewards: importedState.rewards || starterState.rewards,
+          lifetimeXp: importedState.lifetimeXp || importedState.xp || 0,
+          achievements: importedState.achievements || [],
+          workoutLogs: importedState.workoutLogs || [],
+          dailyReflections: importedState.dailyReflections || {},
+          chroniclePosts: importedState.chroniclePosts || [],
+          bossArchive: importedState.bossArchive || [],
+          readingGoal: {
+            ...starterState.readingGoal,
+            ...(importedState.readingGoal || {}),
+            readingLogs: importedState.readingGoal?.readingLogs || [],
+          },
+        });
+
+        setBackupMessage('Save file imported successfully.');
+      } catch {
+        setBackupMessage('Import failed. Use a valid Legacy.EXE save file.');
+      }
+    };
+
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
   function resetApp() {
     localStorage.removeItem(STORAGE_KEY);
     setState(starterState);
@@ -1231,6 +1301,33 @@ function App() {
               <div className="progress-track">
                 <div className="progress-fill" style={{ width: `${progress}%` }} />
               </div>
+            </div>
+
+            <div className="form-card">
+              <p className="eyebrow">Data Safety</p>
+              <h3>Backup Your Save</h3>
+              <p>
+                Legacy.EXE currently saves progress in this browser. Export your save before clearing cache,
+                switching devices, or testing major updates.
+              </p>
+
+              <div className="form-grid">
+                <button type="button" className="ghost" onClick={exportSaveData}>
+                  <Download size={16} /> Export Save
+                </button>
+
+                <label className="ghost import-label">
+                  <Upload size={16} /> Import Save
+                  <input
+                    type="file"
+                    accept="application/json"
+                    onChange={importSaveData}
+                    hidden
+                  />
+                </label>
+              </div>
+
+              {backupMessage && <div className="chronicle-reward">{backupMessage}</div>}
             </div>
 
             <div className="boss-card">
