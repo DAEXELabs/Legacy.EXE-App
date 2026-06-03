@@ -21,6 +21,18 @@ import {
   Dumbbell,
 } from 'lucide-react';
 import './styles.css';
+import { ACHIEVEMENTS } from './data/achievements';
+import { BOSSES } from './data/bosses';
+import {
+  xpForLevel,
+  computeTier,
+  todayKey,
+  getWeeklyBoss,
+  getStreakMultiplier,
+  applyXpProgress,
+  getBossDamage,
+  getBossProgress,
+} from './utils/progression';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 
@@ -47,210 +59,6 @@ const CHRONICLE_TYPES = [
   'Discipline Win',
   'Relationship Win',
   'Creative Build',
-];
-
-const ACHIEVEMENTS = [
-  {
-    id: 'first-workout',
-    name: 'First Sweat',
-    description: 'Log your first workout proof.',
-    xp: 50,
-    title: 'Awakened Body',
-  },
-  {
-    id: 'first-book',
-    name: 'First Finished Book',
-    description: 'Complete your first book.',
-    xp: 100,
-    title: 'Knowledge Seeker',
-  },
-  {
-    id: 'first-boss',
-    name: 'Boss Breaker',
-    description: 'Archive your first boss victory.',
-    xp: 150,
-    title: 'Boss Breaker',
-  },
-  {
-    id: 'seven-streak',
-    name: 'Seven-Day Flame',
-    description: 'Reach a 7-completion streak.',
-    xp: 100,
-    title: 'Flame Keeper',
-  },
-  {
-    id: 'first-public-proof',
-    name: 'Public Proof',
-    description: 'Create your first public Chronicle post.',
-    xp: 75,
-    title: 'Proof Bearer',
-  },
-  {
-    id: 'thousand-xp',
-    name: '1000 XP Earned',
-    description: 'Reach 1000 total lifetime XP.',
-    xp: 100,
-    title: 'Rising Operator',
-  },
-];
-
-const BOSSES = [
-  {
-    name: 'The Drift',
-    hp: 1000,
-    icon: '🌫️',
-    archetype: 'Shadow Wraith',
-    domain: 'Delay',
-    description: 'It feeds on delay, excuses, and unfinished intentions.',
-    weakness: 'Consistent quest completion.',
-    codex: 'The Drift does not attack all at once. It wins by making tomorrow feel harmless.',
-    realLifeForm: 'Procrastination, vague plans, low urgency, and starting without finishing.',
-    countermeasure: 'Choose one quest and complete it before negotiating with your mood.',
-    victory: 'The Drift has been broken. Momentum belongs to you.',
-  },
-  {
-    name: 'The Noise Eater',
-    hp: 1250,
-    icon: '📡',
-    archetype: 'Alien Parasite',
-    domain: 'Distraction',
-    description: 'It feeds on distraction, scrolling, and scattered attention.',
-    weakness: 'Focus sessions and discipline quests.',
-    codex: 'The Noise Eater makes everything louder than your purpose.',
-    realLifeForm: 'Scrolling, notifications, multitasking, background noise, and constant checking.',
-    countermeasure: 'Silence one input, start one timer, and finish one focused action.',
-    victory: 'The noise has been silenced. Your focus is yours again.',
-  },
-  {
-    name: 'The Doubt Wraith',
-    hp: 1500,
-    icon: '👁️',
-    archetype: 'Mind Haunter',
-    domain: 'Self-Doubt',
-    description: 'It whispers that you are not ready, not worthy, and not enough.',
-    weakness: 'Action before confidence.',
-    codex: 'The Doubt Wraith does not need proof. It only needs hesitation.',
-    realLifeForm: 'Second-guessing, fear of judgment, imposter thoughts, and waiting to feel ready.',
-    countermeasure: 'Take the smallest visible action before confidence shows up.',
-    victory: 'Doubt lost its voice. You moved anyway.',
-  },
-  {
-    name: 'The Comfort Tyrant',
-    hp: 1750,
-    icon: '👑',
-    archetype: 'Iron King',
-    domain: 'Comfort',
-    description: 'It rules through ease, softness, and avoiding hard things.',
-    weakness: 'Doing the necessary thing when it is inconvenient.',
-    codex: 'The Comfort Tyrant offers peace, but charges you with stagnation.',
-    realLifeForm: 'Avoiding workouts, hard talks, study, discipline, and anything uncomfortable.',
-    countermeasure: 'Do the necessary thing while it is still inconvenient.',
-    victory: 'Comfort no longer commands you.',
-  },
-  {
-    name: 'The Guiltborn',
-    hp: 2000,
-    icon: '⛓️',
-    archetype: 'Chain Demon',
-    domain: 'Shame',
-    description: 'It grows from shame, regret, and the weight of yesterday.',
-    weakness: 'Repentance, responsibility, and forward movement.',
-    codex: 'The Guiltborn chains you to what happened so you forget what can still be rebuilt.',
-    realLifeForm: 'Shame loops, regret, spiritual fear, self-punishment, and hiding.',
-    countermeasure: 'Own what is yours, receive grace, and complete the next right action.',
-    victory: 'The past did not get the final word today.',
-  },
-  {
-    name: 'The Spiral',
-    hp: 2250,
-    icon: '🌀',
-    archetype: 'Reality Mage',
-    domain: 'Overthinking',
-    description: 'It traps your mind in loops, what-ifs, and overthinking.',
-    weakness: 'Simple next actions.',
-    codex: 'The Spiral turns thinking into a maze and calls it preparation.',
-    realLifeForm: 'What-ifs, mental loops, overplanning, fear scenarios, and analysis paralysis.',
-    countermeasure: 'Write the next action in one sentence, then do it.',
-    victory: 'The loop was cut. You returned to the present.',
-  },
-  {
-    name: 'The False Self',
-    hp: 2500,
-    icon: '🎭',
-    archetype: 'Mirror Phantom',
-    domain: 'Fantasy',
-    description: 'It keeps you living in fantasy instead of execution.',
-    weakness: 'Real-world proof.',
-    codex: 'The False Self lets you feel like a champion without requiring evidence.',
-    realLifeForm: 'Daydreaming, identity fantasy, empty planning, and imagining progress instead of making it.',
-    countermeasure: 'Trade imagination for proof. Complete something measurable.',
-    victory: 'Fantasy bowed to evidence.',
-  },
-  {
-    name: 'The Fear Architect',
-    hp: 3000,
-    icon: '🏰',
-    archetype: 'Void Engineer',
-    domain: 'Fear',
-    description: 'It builds walls out of failure, success, judgment, and uncertainty.',
-    weakness: 'Courageous attempts.',
-    codex: 'The Fear Architect builds prisons out of possibilities.',
-    realLifeForm: 'Fear of failing, fear of winning, fear of being seen, and fear of being wrong.',
-    countermeasure: 'Make one courageous attempt and let the result be information.',
-    victory: 'The walls cracked. You stepped forward.',
-  },
-  {
-    name: 'The Fragmentor',
-    hp: 3250,
-    icon: '🧩',
-    archetype: 'Glitch Construct',
-    domain: 'Scattered Focus',
-    description: 'It scatters your energy across too many unfinished paths.',
-    weakness: 'Priority, focus, and completion.',
-    codex: 'The Fragmentor does not stop you from working. It makes you work everywhere at once.',
-    realLifeForm: 'Too many projects, constant switching, unfinished tabs, and unclear priorities.',
-    countermeasure: 'Pick one priority, close the extra loops, and finish the active quest.',
-    victory: 'Your focus was reforged.',
-  },
-  {
-    name: 'The Craving Maw',
-    hp: 3500,
-    icon: '🦷',
-    archetype: 'Hunger Beast',
-    domain: 'Impulse',
-    description: 'It feeds on impulse, lust, escape, and quick relief.',
-    weakness: 'Self-control and replacement actions.',
-    codex: 'The Craving Maw promises relief but leaves you thirsty again.',
-    realLifeForm: 'Porn, lust, bingeing, compulsive checking, emotional eating, and escape habits.',
-    countermeasure: 'Delay the impulse, change location, and replace it with a body-based action.',
-    victory: 'The craving passed. You remained.',
-  },
-  {
-    name: 'The Hollow King',
-    hp: 4000,
-    icon: '🕳️',
-    archetype: 'Empty Monarch',
-    domain: 'Numbness',
-    description: 'It drains meaning and makes progress feel empty.',
-    weakness: 'Connection, gratitude, and purposeful action.',
-    codex: 'The Hollow King convinces you that nothing matters so you stop reaching.',
-    realLifeForm: 'Numbness, isolation, hopelessness, emotional shutdown, and disconnection.',
-    countermeasure: 'Reconnect with one person, name one grace, and complete one purposeful action.',
-    victory: 'Meaning returned to the throne.',
-  },
-  {
-    name: 'The Unfinished One',
-    hp: 5000,
-    icon: '🪦',
-    archetype: 'Gravebound Giant',
-    domain: 'Abandoned Momentum',
-    description: 'It is made of abandoned projects, broken promises, and lost momentum.',
-    weakness: 'Finishing what you start.',
-    codex: 'The Unfinished One grows every time a promise is buried without closure.',
-    realLifeForm: 'Abandoned projects, broken routines, half-built ideas, and forgotten commitments.',
-    countermeasure: 'Finish, delete, delegate, or schedule it. Do not leave it haunting you.',
-    victory: 'The unfinished became evidence of discipline.',
-  },
 ];
 
 const starterState = {
@@ -349,67 +157,6 @@ const starterState = {
   ],
 };
 
-function xpForLevel(level) {
-  return level * 200;
-}
-
-function computeTier(level) {
-  if (level <= 5) return 'Uncompiled';
-  if (level <= 15) return 'Initiate';
-  if (level <= 30) return 'Builder';
-  if (level <= 50) return 'Ascendant';
-  if (level <= 75) return 'Champion';
-  return 'Legacy';
-}
-
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getWeekNumber() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const days = Math.floor((now - start) / 86400000);
-  return Math.ceil((days + start.getDay() + 1) / 7);
-}
-
-function getWeeklyBoss() {
-  const week = getWeekNumber();
-  const index = (week - 1) % BOSSES.length;
-
-  return {
-    ...BOSSES[index],
-    week,
-  };
-}
-
-function getBossDamage(quests, chroniclePosts = []) {
-  const questDamage = quests
-    .filter(q => q.completedToday)
-    .reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
-
-  const today = todayKey();
-
-  const chronicleDamage = chroniclePosts
-    .filter(post => post.date?.slice(0, 10) === today)
-    .reduce((sum, post) => sum + Number(post.xp || 25), 0);
-
-  return questDamage + chronicleDamage;
-}
-
-function getBossProgress(boss, quests, chroniclePosts = []) {
-  const damage = getBossDamage(quests, chroniclePosts);
-  return Math.min(100, Math.round((damage / boss.hp) * 100));
-}
-
-function getStreakMultiplier(streak = 0) {
-  if (streak >= 30) return 2;
-  if (streak >= 14) return 1.5;
-  if (streak >= 7) return 1.25;
-  if (streak >= 3) return 1.1;
-  return 1;
-}
-
 function calculateEffortScore(log) {
   const duration = Number(log.duration || 0);
   const effort = Number(log.effort || 0);
@@ -506,27 +253,6 @@ function getRegimenTotals(regimen) {
     }),
     { sets: 0, exercises: 0 }
   );
-}
-
-function applyXpProgress(prev, xpAmount) {
-  let nextXp = prev.xp + Number(xpAmount);
-  let nextLevel = prev.level;
-  let needed = xpForLevel(nextLevel);
-
-  while (nextXp >= needed) {
-    nextXp -= needed;
-    nextLevel += 1;
-    needed = xpForLevel(nextLevel);
-  }
-
-  const rewards = prev.rewards.map(reward => ({
-    ...reward,
-    unlocked: reward.unlocked || (reward.level && nextLevel >= reward.level),
-  }));
-
-  const nextLifetimeXp = Number(prev.lifetimeXp || 0) + Number(xpAmount);
-
-  return { nextXp, nextLevel, rewards, nextLifetimeXp };
 }
 
 function getAchievementIds(achievements = []) {
