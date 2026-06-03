@@ -1,0 +1,83 @@
+import { BOSSES } from '../data/bosses';
+
+export function xpForLevel(level) {
+  return level * 200;
+}
+
+export function computeTier(level) {
+  if (level <= 5) return 'Uncompiled';
+  if (level <= 15) return 'Initiate';
+  if (level <= 30) return 'Builder';
+  if (level <= 50) return 'Ascendant';
+  if (level <= 75) return 'Champion';
+  return 'Legacy';
+}
+
+export function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export function getWeekNumber() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const days = Math.floor((now - start) / 86400000);
+  return Math.ceil((days + start.getDay() + 1) / 7);
+}
+
+export function getWeeklyBoss() {
+  const week = getWeekNumber();
+  const index = (week - 1) % BOSSES.length;
+
+  return {
+    ...BOSSES[index],
+    week,
+  };
+}
+
+export function getBossDamage(quests, chroniclePosts = []) {
+  const questDamage = quests
+    .filter(q => q.completedToday)
+    .reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
+
+  const today = todayKey();
+
+  const chronicleDamage = chroniclePosts
+    .filter(post => post.date?.slice(0, 10) === today)
+    .reduce((sum, post) => sum + Number(post.xp || 25), 0);
+
+  return questDamage + chronicleDamage;
+}
+
+export function getBossProgress(boss, quests, chroniclePosts = []) {
+  const damage = getBossDamage(quests, chroniclePosts);
+  return Math.min(100, Math.round((damage / boss.hp) * 100));
+}
+
+export function getStreakMultiplier(streak = 0) {
+  if (streak >= 30) return 2;
+  if (streak >= 14) return 1.5;
+  if (streak >= 7) return 1.25;
+  if (streak >= 3) return 1.1;
+  return 1;
+}
+
+export function applyXpProgress(prev, xpAmount) {
+  let nextXp = prev.xp + Number(xpAmount);
+  let nextLevel = prev.level;
+  let needed = xpForLevel(nextLevel);
+
+  while (nextXp >= needed) {
+    nextXp -= needed;
+    nextLevel += 1;
+    needed = xpForLevel(nextLevel);
+  }
+
+  const rewards = prev.rewards.map(reward => ({
+    ...reward,
+    unlocked: reward.unlocked || (reward.level && nextLevel >= reward.level),
+  }));
+
+  const nextLifetimeXp = Number(prev.lifetimeXp || 0) + Number(xpAmount);
+
+  return { nextXp, nextLevel, rewards, nextLifetimeXp };
+}
