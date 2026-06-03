@@ -43,6 +43,10 @@ import { ChronicleTab } from './components/ChronicleTab';
 import { ReadingTab } from './components/ReadingTab';
 import { BossTab } from './components/BossTab';
 import { CharacterTab } from './components/CharacterTab';
+import { QuestItem } from './components/QuestItem';
+import { WorkoutProofModal } from './components/WorkoutProofModal';
+import { CheckinModal } from './components/CheckinModal';
+import { TimerModal } from './components/TimerModal';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 
@@ -908,6 +912,8 @@ function App() {
                     key={q.id}
                     quest={q}
                     onComplete={requestQuestCompletion}
+                    STAT_META={STAT_META}
+                    PROOF_META={PROOF_META}
                   />
                 ))}
             </div>
@@ -1097,6 +1103,8 @@ function App() {
                       key={q.id}
                       quest={q}
                       onComplete={requestQuestCompletion}
+                      STAT_META={STAT_META}
+                      PROOF_META={PROOF_META}
                     />
                   ))}
                 </div>
@@ -1208,242 +1216,33 @@ function App() {
         )}
       </section>
 
-      {workoutQuest && (
-        <div className="modal-backdrop">
-          <form className="modal-card" onSubmit={submitWorkout}>
-            <p className="eyebrow">Workout Proof KPI</p>
-            <h3>{workoutQuest.title}</h3>
-            <p>
-              Log measurable effort before XP unlocks. Minimum: 10 minutes, effort 3+, score 25+.
-            </p>
+      <WorkoutProofModal
+        workoutQuest={workoutQuest}
+        workoutProof={workoutProof}
+        setWorkoutProof={setWorkoutProof}
+        submitWorkout={submitWorkout}
+        setWorkoutQuest={setWorkoutQuest}
+        workoutRegimen={workoutRegimen}
+        workoutTotals={workoutTotals}
+        calculateEffortScore={calculateEffortScore}
+        level={state.level}
+      />
 
-            <div className="codex-card">
-              <p className="eyebrow">
-                Level {state.level} Regimen • {workoutRegimen.name}
-              </p>
-              <h3>{workoutRegimen.intensity} Workout</h3>
-              <p>{workoutRegimen.target}</p>
+      <CheckinModal
+        checkinQuest={checkinQuest}
+        checkinText={checkinText}
+        setCheckinText={setCheckinText}
+        submitCheckin={submitCheckin}
+        setCheckinQuest={setCheckinQuest}
+      />
 
-              {workoutRegimen.exercises.map(exercise => (
-                <div className="codex-row" key={exercise.name}>
-                  <strong>{exercise.name}</strong>
-                  <p>
-                    {exercise.sets} sets x {exercise.reps} • {exercise.weight}
-                  </p>
-                </div>
-              ))}
-
-              <div className="chronicle-reward">
-                <Dumbbell size={14} /> Target: {workoutTotals.exercises} exercises / {workoutTotals.sets} total sets
-              </div>
-            </div>
-
-            <div className="form-grid">
-              <label>
-                <span>Workout Type</span>
-                <small>What kind of training did you do?</small>
-                <select
-                  value={workoutProof.type}
-                  onChange={e =>
-                    setWorkoutProof({ ...workoutProof, type: e.target.value })
-                  }
-                >
-                  <option>Strength</option>
-                  <option>Cardio</option>
-                  <option>Mobility</option>
-                  <option>Sport</option>
-                  <option>Other</option>
-                </select>
-              </label>
-
-              <label>
-                <span>Duration Minutes</span>
-                <small>How many minutes did you train?</small>
-                <input
-                  type="number"
-                  min="0"
-                  value={workoutProof.duration}
-                  onChange={e =>
-                    setWorkoutProof({ ...workoutProof, duration: e.target.value })
-                  }
-                  placeholder="Example: 30"
-                />
-              </label>
-            </div>
-
-            <div className="form-grid">
-              <label>
-                <span>Effort Level</span>
-                <small>1 = easy, 10 = all out.</small>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={workoutProof.effort}
-                  onChange={e =>
-                    setWorkoutProof({ ...workoutProof, effort: e.target.value })
-                  }
-                  placeholder="Example: 6"
-                />
-              </label>
-
-              <label>
-                <span>Total Sets</span>
-                <small>Count all sets completed across the workout.</small>
-                <input
-                  type="number"
-                  min="0"
-                  value={workoutProof.sets}
-                  onChange={e =>
-                    setWorkoutProof({ ...workoutProof, sets: e.target.value })
-                  }
-                  placeholder="Example: 6"
-                />
-              </label>
-            </div>
-
-            <label>
-              <span>Total Reps</span>
-              <small>Approximate total reps completed. Cardio users can enter 0.</small>
-              <input
-                type="number"
-                min="0"
-                value={workoutProof.reps}
-                onChange={e =>
-                  setWorkoutProof({ ...workoutProof, reps: e.target.value })
-                }
-                placeholder="Example: 60"
-              />
-            </label>
-
-            <label>
-              <span>Workout Notes</span>
-              <small>Briefly describe what you actually did.</small>
-              <textarea
-                value={workoutProof.notes}
-                onChange={e =>
-                  setWorkoutProof({ ...workoutProof, notes: e.target.value })
-                }
-                placeholder="Example: Pushups, squats, plank, and 10 minutes walking."
-              />
-            </label>
-
-            <div className="kpi-score">
-              Effort Score: {calculateEffortScore(workoutProof)}
-            </div>
-
-            <button
-              className="primary"
-              disabled={
-                Number(workoutProof.duration || 0) < 10 ||
-                Number(workoutProof.effort || 0) < 3 ||
-                calculateEffortScore(workoutProof) < 25
-              }
-            >
-              Submit Workout Proof
-            </button>
-
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setWorkoutQuest(null)}
-            >
-              Cancel
-            </button>
-          </form>
-        </div>
-      )}
-
-      {checkinQuest && (
-        <div className="modal-backdrop">
-          <form className="modal-card" onSubmit={submitCheckin}>
-            <p className="eyebrow">Proof of Effort</p>
-            <h3>{checkinQuest.title}</h3>
-            <p>Write one honest sentence about what you did.</p>
-
-            <textarea
-              value={checkinText}
-              onChange={e => setCheckinText(e.target.value)}
-              placeholder="Example: I read chapter 2 and took notes."
-            />
-
-            <button className="primary" disabled={checkinText.trim().length < 5}>
-              Submit Proof
-            </button>
-
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setCheckinQuest(null)}
-            >
-              Cancel
-            </button>
-          </form>
-        </div>
-      )}
-
-      {timerQuest && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <p className="eyebrow">Timer Proof</p>
-            <h3>{timerQuest.title}</h3>
-
-            <div className="timer-ring">{timerDone ? '✓' : '5'}</div>
-
-            <p>
-              {timerDone
-                ? 'Timer complete. Claim your XP.'
-                : 'Demo timer running. Full focus timer comes next.'}
-            </p>
-
-            <button className="primary" disabled={!timerDone} onClick={submitTimer}>
-              Claim XP
-            </button>
-
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setTimerQuest(null)}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+      <TimerModal
+        timerQuest={timerQuest}
+        timerDone={timerDone}
+        submitTimer={submitTimer}
+        setTimerQuest={setTimerQuest}
+      />
     </main>
-  );
-}
-
-function QuestItem({ quest, onComplete }) {
-  const Icon = STAT_META[quest.stat].icon;
-  const ProofIcon = PROOF_META[quest.proof]?.icon || CheckCircle2;
-
-  return (
-    <article className={`quest-item ${quest.completedToday ? 'complete' : ''}`}>
-      <div className="quest-left">
-        <div className="quest-icon">
-          <Icon size={20} />
-        </div>
-
-        <div>
-          <h4>{quest.title}</h4>
-          <p>
-            {STAT_META[quest.stat].label} • {quest.frequency} • {quest.xp} XP
-          </p>
-          <span className="proof-badge">
-            <ProofIcon size={12} /> {PROOF_META[quest.proof]?.label || 'Honor'}
-          </span>
-        </div>
-      </div>
-
-      <button
-        onClick={() => onComplete(quest)}
-        disabled={quest.completedToday}
-        className="complete-btn"
-      >
-        <CheckCircle2 size={20} />
-      </button>
-    </article>
   );
 }
 
