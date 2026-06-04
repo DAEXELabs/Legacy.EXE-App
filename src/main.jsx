@@ -46,6 +46,8 @@ import { ChronicleTab } from './components/ChronicleTab';
 import { ReadingTab } from './components/ReadingTab';
 import { BossTab } from './components/BossTab';
 import { CharacterTab } from './components/CharacterTab';
+import { AsyncQueueDisplay } from './async/AsyncQueueDisplay';
+import { createInitialAsyncState, readAsyncState, writeAsyncState } from './async/asyncEngine';
 import { QuestItem } from './components/QuestItem';
 import { WorkoutProofModal } from './components/WorkoutProofModal';
 import { CheckinModal } from './components/CheckinModal';
@@ -229,11 +231,30 @@ function App() {
     title: 'Uncompiled Operator',
   });
 
+  const [asyncState, setAsyncState] = useState(readAsyncState);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
 
   useEffect(() => {
+    const id = setInterval(() => {
+      setAsyncState((prev) => {
+        if (prev.lockedSlots.length === 0) return prev;
+        const next = advanceTrigger(prev);
+        writeAsyncState(next);
+        return next;
+      });
+    }, 60000);
+
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    writeAsyncState(asyncState);
+  }, [asyncState]);
+
+ useEffect(() => {
     if (!timerQuest || timerDone) return;
     const timeout = setTimeout(() => setTimerDone(true), 5000);
     return () => clearTimeout(timeout);
@@ -933,7 +954,7 @@ function App() {
         </header>
 
         <nav className="tabs">
-          {['home', 'quests', 'compile', 'reading', 'chronicle', 'feed', 'achievements', 'character', 'boss'].map(item => (
+          {['home', 'quests', 'compile', 'reading', 'chronicle', 'feed', 'async', 'achievements', 'character', 'boss'].map(item => (
             <button
               key={item}
               onClick={() => setTab(item)}
@@ -1162,6 +1183,16 @@ function App() {
             session={session}
             currentUserId={session?.user?.id}
             cloudAvailable={cloudAvailable}
+          />
+        )}
+
+        {tab === 'async' && (
+          <AsyncQueueDisplay
+            state={asyncState}
+            setState={setAsyncState}
+            onQr={(dataUrl) =>
+              setAsyncState((prev) => ({ ...prev, qrState: { selectedId: 'latest', dataUrl } }))
+            }
           />
         )}
 

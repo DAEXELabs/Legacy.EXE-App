@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { TriggerEvent } from './asyncEngine';
 
 export function AsyncTriggerModal({ event, onClose, onSubmit }) {
   const [note, setNote] = useState('');
