@@ -882,7 +882,7 @@ function App() {
         <AuthScreen
           cloudAvailable={cloudAvailable}
           onContinueLocal={() => setLocalMode(true)}
-          onAuthSuccess={setSession}
+          onAuthSuccess={() => {}}
         />
       );
     }
