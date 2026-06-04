@@ -32,6 +32,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        cacheId: 'legacy-exe',
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
       },
     }),
