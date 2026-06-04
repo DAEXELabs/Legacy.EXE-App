@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
-export function AuthScreen({ onLocalContinue, onAuthSuccess }) {
+export function AuthScreen({ onLocalContinue, onAuthSuccess, cloudAvailable }) {
+  const enabled = cloudAvailable && isSupabaseConfigured && supabase;
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,19 +15,17 @@ export function AuthScreen({ onLocalContinue, onAuthSuccess }) {
     setError('');
 
     try {
+      if (!enabled) {
+        throw new Error('Cloud auth is unavailable. Continue in local mode.');
+      }
+
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setError('Sign-up successful! Check your email to verify, then sign in.');
+        setError('Sign-up successful! Check your email, then sign in.');
         setMode('signin');
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         if (onAuthSuccess) onAuthSuccess(data.session);
       }

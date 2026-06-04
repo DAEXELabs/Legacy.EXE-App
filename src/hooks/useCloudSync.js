@@ -4,7 +4,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 export function useCloudSync() {
   const cloudAvailable = useMemo(() => isSupabaseConfigured && Boolean(supabase), []);
 
-  const [authLoading, setAuthLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [session, setSession] = useState(null);
   const [localMode, setLocalMode] = useState(() => {
     if (!cloudAvailable) return true;
@@ -12,15 +12,9 @@ export function useCloudSync() {
   });
 
   useEffect(() => {
-    if (localMode) sessionStorage.setItem('legacy-exe-local', 'true');
-    else sessionStorage.removeItem('legacy-exe-local');
-  }, [localMode]);
-
-  useEffect(() => {
     let cancelled = false;
 
     if (!cloudAvailable) {
-      setAuthLoading(true);
       setSession(null);
       setAuthLoading(false);
       return;
