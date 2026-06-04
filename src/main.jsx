@@ -876,16 +876,14 @@ function App() {
     setState(starterState);
   }
 
-  if (!authLoading || !session) {
-    if (!localMode) {
-      return (
-        <AuthScreen
-          cloudAvailable={cloudAvailable}
-          onContinueLocal={() => setLocalMode(true)}
-          onAuthSuccess={() => {}}
-        />
-      );
-    }
+  if (!authLoading && !session && !localMode) {
+    return (
+      <AuthScreen
+        cloudAvailable={cloudAvailable}
+        onLocalContinue={handleLocalContinue}
+        onAuthSuccess={handleLocalContinue}
+      />
+    );
   }
 
   if (!state.onboarded) {
