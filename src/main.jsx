@@ -39,6 +39,9 @@ import {
   getRegimenTotals,
 } from './data/workoutRegimens';
 import { starterState } from './data/starterState';
+import { AuthScreen } from './components/AuthScreen';
+import { UserMenu } from './components/UserMenu';
+import { SocialFeedTab } from './components/SocialFeedTab';
 import { ChronicleTab } from './components/ChronicleTab';
 import { ReadingTab } from './components/ReadingTab';
 import { BossTab } from './components/BossTab';
@@ -47,6 +50,7 @@ import { QuestItem } from './components/QuestItem';
 import { WorkoutProofModal } from './components/WorkoutProofModal';
 import { CheckinModal } from './components/CheckinModal';
 import { TimerModal } from './components/TimerModal';
+import { useCloudSync } from './hooks/useCloudSync';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 const QUEST_XP_MIN = 10;
@@ -122,6 +126,18 @@ function unlockAchievements(prev, candidates = []) {
 }
 
 function App() {
+  const {
+    session,
+    user,
+    authLoading,
+    cloudAvailable,
+    localMode,
+    setLocalMode,
+    signOut,
+  } = useCloudSync();
+
+  const handleLocalContinue = () => setLocalMode(true);
+
   const [state, setState] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
 
@@ -839,6 +855,16 @@ function App() {
     setState(starterState);
   }
 
+  if (!authLoading && !session && !localMode) {
+    return (
+      <AuthScreen
+        cloudAvailable={cloudAvailable}
+        onContinueLocal={handleLocalContinue}
+        onAuthSuccess={setSession}
+      />
+    );
+  }
+
   if (!state.onboarded) {
     return (
       <main className="app-shell">
@@ -907,7 +933,7 @@ function App() {
         </header>
 
         <nav className="tabs">
-          {['home', 'quests', 'compile', 'reading', 'chronicle', 'achievements', 'character', 'boss'].map(item => (
+          {['home', 'quests', 'compile', 'reading', 'chronicle', 'feed', 'achievements', 'character', 'boss'].map(item => (
             <button
               key={item}
               onClick={() => setTab(item)}
@@ -917,6 +943,19 @@ function App() {
             </button>
           ))}
         </nav>
+
+        <div className="user-menu-slot">
+          <UserMenu
+            session={session}
+            onSignOut={signOut}
+            cloudAvailable={cloudAvailable}
+            localMode={localMode}
+          />
+        </div>
+
+        {!cloudAvailable && (
+          <small className="cloud-notice">Cloud sync unavailable — running in local mode.</small>
+        )}
 
         {tab === 'home' && (
           <section className="screen-stack">
@@ -1115,6 +1154,14 @@ function App() {
             addChroniclePost={addChroniclePost}
             encourageChroniclePost={encourageChroniclePost}
             toggleChronicleVisibility={toggleChronicleVisibility}
+          />
+        )}
+
+        {tab === 'feed' && (
+          <SocialFeedTab
+            session={session}
+            currentUserId={session?.user?.id}
+            cloudAvailable={cloudAvailable}
           />
         )}
 

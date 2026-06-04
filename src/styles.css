@@ -115,6 +115,31 @@ textarea { min-height: 96px; resize: vertical; }
 .quest-edit-actions { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; }
 .ghost.danger { color: #ff6b6b; border-color: rgba(255, 107, 107, 0.35); }
 .ghost.danger:hover { background: rgba(255, 107, 107, 0.12); }
+.user-menu-slot { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+.user-menu { display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); color: #f7f7fb; font-size: 12px; }
+.user-menu button { margin-left: 6px; }
+.cloud-notice { display: block; text-align: center; color: #9fb0ff; margin: 8px 0 4px; }
+.auth-frame { display: grid; gap: 14px; }
+.auth-frame h1 { font-size: 24px; }
+.secondary { border: 1px solid rgba(255,255,255,.15); border-radius: 16px; padding: 13px; color: #f7f7fb; background: rgba(255,255,255,.06); font-weight: 700; }
+.auth-error { padding: 10px 12px; border-radius: 14px; background: rgba(255,91,91,.14); border: 1px solid rgba(255,91,91,.28); color: #ffb1b1; font-size: 12px; }
+.feed-list { display: grid; gap: 12px; }
+.feed-post { display: grid; gap: 10px; padding: 14px; border-radius: 20px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.09); }
+.feed-image { width: 100%; max-height: 220px; object-fit: cover; border-radius: 18px; border: 1px solid rgba(255,255,255,.1); }
+.feed-meta { display: flex; justify-content: space-between; color: #7f8caf; font-size: .72rem; }
+.feed-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+.feed-type { color: #f6c65b; font-size: .72rem; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
+.profile-card { display: grid; gap: 4px; padding: 10px 12px; border-radius: 18px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); }
+.profile-card-body { display: flex; align-items: center; gap: 12px; }
+.profile-card-avatar { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; background: rgba(159,176,255,.12); border: 1px solid rgba(255,255,255,.12); font-size: 1.4rem; }
+.profile-card-meta { display: grid; gap: 2px; }
+.profile-handle { color: #9fb0ff; font-size: .75rem; }
+.profile-compact { display: flex; align-items: center; gap: 10px; }
+.profile-compact-avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; background: rgba(159,176,255,.12); border: 1px solid rgba(255,255,255,.12); }
+.profile-compact-info { display: grid; gap: 2px; }
+.profile-compact-info strong { font-size: .9rem; }
+.profile-compact-info span { color: #9fb0ff; font-size: .72rem; }
+.small { padding: 8px 10px; font-size: 11px; }
 @keyframes victory-spin { to { transform: rotate(360deg); } }
 @media (max-width: 460px) {
   .app-shell { padding: 0; }
