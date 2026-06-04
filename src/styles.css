@@ -140,6 +140,28 @@ textarea { min-height: 96px; resize: vertical; }
 .profile-compact-info strong { font-size: .9rem; }
 .profile-compact-info span { color: #9fb0ff; font-size: .72rem; }
 .small { padding: 8px 10px; font-size: 11px; }
+.async-screen { display: grid; gap: 16px; }
+.async-slots { display: grid; gap: 12px; }
+.async-slot { padding: 14px; border-radius: 20px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.09); display: grid; gap: 10px; }
+.async-slot-free { opacity: .7; }
+.async-slot-occupied { border-color: rgba(159,176,255,.2); }
+.async-slot-label { color: #9fb0ff; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
+.async-slot-empty { color: #7f8caf; font-size: .82rem; }
+.async-trigger-card { display: grid; gap: 10px; padding: 12px; border-radius: 18px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.09); }
+.async-trigger-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.async-status { font-size: .72rem; padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); }
+.async-status-confirmed { color: #51ffa9; border-color: rgba(81,255,169,.3); }
+.async-status-pending { color: #f6c65b; border-color: rgba(246,198,91,.3); }
+.async-status-failed { color: #ff5da6; border-color: rgba(255,93,166,.3); }
+.async-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.async-history { display: grid; gap: 8px; }
+.async-history-item { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; padding: 10px; border-radius: 14px; background: rgba(0,0,0,.18); border: 1px solid rgba(255,255,255,.08); font-size: .8rem; color: #b9c1d9; }
+.async-history-confirmed { border-color: rgba(81,255,169,.25); }
+.async-history-failed { border-color: rgba(255,91,91,.25); }
+.async-modal { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(5,7,17,.85); z-index: 50; }
+.async-modal-body { width: min(360px, 92vw); padding: 18px; border-radius: 22px; background: linear-gradient(180deg, rgba(17,22,43,.94), rgba(6,8,19,.98)); border: 1px solid rgba(255,255,255,.14); display: grid; gap: 12px; }
+.async-modal-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.async-modal-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
 @keyframes victory-spin { to { transform: rotate(360deg); } }
 @media (max-width: 460px) {
   .app-shell { padding: 0; }
