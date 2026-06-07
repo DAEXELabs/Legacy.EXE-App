@@ -300,6 +300,62 @@ textarea { min-height: 96px; resize: vertical; }
   text-align: center;
 }
 
+.newsletter-card {
+  display: grid;
+  gap: 8px;
+}
+
+.newsletter-author {
+  color: #f6c65b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.newsletter-body {
+  margin: 0;
+}
+
+.newsletter-date {
+  color: #7f8caf;
+}
+
+.message-list {
+  display: grid;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.message-bubble {
+  padding: 10px 14px;
+  border-radius: 14px;
+  max-width: 80%;
+  word-break: break-word;
+}
+
+.message-bubble.outgoing {
+  background: rgba(141, 108, 255, 0.2);
+  border: 1px solid rgba(141, 108, 255, 0.3);
+  justify-self: end;
+}
+
+.message-bubble.incoming {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  justify-self: start;
+}
+
+.message-bubble p {
+  margin: 0;
+}
+
+.block-user-wrapper {
+  display: inline-block;
+}
+
+.report-modal {
+  max-width: 400px;
+}
+
 @media (max-width: 460px) {
   .app-shell { padding: 0; }
   .phone-frame { border-radius: 0; min-height: 100vh; border: 0; }

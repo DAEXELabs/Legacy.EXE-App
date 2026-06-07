@@ -48,6 +48,7 @@ import { ReadingTab } from './components/ReadingTab';
 import { BossTab } from './components/BossTab';
 import { CharacterTab } from './components/CharacterTab';
 import { SettingsTab } from './components/SettingsTab';
+import { MessagesTab } from './components/MessagesTab';
 import { AsyncQueueDisplay } from './async/AsyncQueueDisplay';
 import { advanceTrigger, readAsyncState, writeAsyncState } from './async/asyncEngine';
 import { QuestItem } from './components/QuestItem';
@@ -1039,7 +1040,7 @@ function App() {
         {xpToast && <div className="xp-toast">+{xpToast} XP</div>}
 
         <nav className="tabs">
-          {['home', 'quests', 'compile', 'reading', 'chronicle', 'feed', 'async', 'achievements', 'character', 'boss', 'settings'].map(item => (
+          {['home', 'quests', 'compile', 'reading', 'chronicle', 'feed', 'async', 'achievements', 'character', 'boss', 'settings', 'messages'].map(item => (
             <button
               key={item}
               onClick={() => { playClick(); setTab(item); }}
@@ -1588,6 +1589,13 @@ function App() {
               importSaveData={importSaveData}
               resetApp={resetApp}
               backupMessage={backupMessage}
+            />
+          )}
+
+        {tab === 'messages' && (
+            <MessagesTab
+              session={session}
+              localMode={localMode}
             />
           )}
       </section>
