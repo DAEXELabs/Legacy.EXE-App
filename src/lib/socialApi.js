@@ -95,3 +95,41 @@ export async function getFollowing(userId) {
     .eq('follower_id', userId);
   return { data: data || [], error };
 }
+
+export async function deleteUserAppData(userId) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+
+  try {
+    const { error: reactionsError } = await supabase
+      .from('post_reactions')
+      .delete()
+      .eq('user_id', userId);
+
+    if (reactionsError) throw reactionsError;
+
+    const { error: connectionsError } = await supabase
+      .from('connections')
+      .delete()
+      .or(`follower_id.eq.${userId},following_id.eq.${userId}`);
+
+    if (connectionsError) throw connectionsError;
+
+    const { error: postsError } = await supabase
+      .from('chronicle_posts')
+      .delete()
+      .eq('user_id', userId);
+
+    if (postsError) throw postsError;
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+
+    if (profileError) throw profileError;
+
+    return { data: { success: true }, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}

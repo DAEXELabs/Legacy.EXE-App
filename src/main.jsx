@@ -21,7 +21,7 @@ import {
   Dumbbell,
 } from 'lucide-react';
 import './styles.css';
-import { playClick, playQuestComplete, playLevelUp, playAchievement, playBossDefeat, getSoundEnabled } from './lib/soundFx';
+import { playClick, playQuestComplete, playLevelUp, playAchievement, playBossDefeat, getSoundEnabled, setSoundEnabled } from './lib/soundFx';
 import { ACHIEVEMENTS } from './data/achievements';
 import { BOSSES } from './data/bosses';
 import {
@@ -47,6 +47,7 @@ import { ChronicleTab } from './components/ChronicleTab';
 import { ReadingTab } from './components/ReadingTab';
 import { BossTab } from './components/BossTab';
 import { CharacterTab } from './components/CharacterTab';
+import { SettingsTab } from './components/SettingsTab';
 import { AsyncQueueDisplay } from './async/AsyncQueueDisplay';
 import { advanceTrigger, readAsyncState, writeAsyncState } from './async/asyncEngine';
 import { QuestItem } from './components/QuestItem';
@@ -239,10 +240,23 @@ function App() {
   const [questPulseId, setQuestPulseId] = useState(null);
   const prevStateRef = useRef(null);
   const prevBossDamageRef = useRef(0);
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('legacy-exe-settings-v1');
+    return saved ? JSON.parse(saved) : {
+      soundEnabled: true,
+      reducedMotion: false,
+      defaultChroniclePrivacy: 'public'
+    };
+  });
 
   useEffect(() => {
     getSoundEnabled();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('legacy-exe-settings-v1', JSON.stringify(settings));
+    setSoundEnabled(settings.soundEnabled);
+  }, [settings]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -673,7 +687,7 @@ function App() {
             type: chronicleDraft.type,
             caption,
             imageUrl,
-            visibility: 'public',
+            visibility: settings.defaultChroniclePrivacy,
             encouragementCount: 0,
             date: new Date().toISOString(),
             xp: 25,
@@ -1025,7 +1039,7 @@ function App() {
         {xpToast && <div className="xp-toast">+{xpToast} XP</div>}
 
         <nav className="tabs">
-          {['home', 'quests', 'compile', 'reading', 'chronicle', 'feed', 'async', 'achievements', 'character', 'boss'].map(item => (
+          {['home', 'quests', 'compile', 'reading', 'chronicle', 'feed', 'async', 'achievements', 'character', 'boss', 'settings'].map(item => (
             <button
               key={item}
               onClick={() => { playClick(); setTab(item); }}
@@ -1545,22 +1559,37 @@ function App() {
         )}
 
 {tab === 'boss' && (
-           <BossTab
-             state={state}
-             weeklyBoss={weeklyBoss}
-             bossHpRemaining={bossHpRemaining}
-             baseBossDamage={baseBossDamage}
-             streakMultiplier={streakMultiplier}
-             driftMessage={driftMessage}
-             bossProgress={bossProgress}
-             bossDefeated={bossDefeated}
-             isBossArchived={isBossArchived}
-             archiveBossVictory={archiveBossVictory}
-             completedToday={completedToday}
-             resetApp={resetApp}
-             bossPulse={bossPulse}
-           />
-         )}
+            <BossTab
+              state={state}
+              weeklyBoss={weeklyBoss}
+              bossHpRemaining={bossHpRemaining}
+              baseBossDamage={baseBossDamage}
+              streakMultiplier={streakMultiplier}
+              driftMessage={driftMessage}
+              bossProgress={bossProgress}
+              bossDefeated={bossDefeated}
+              isBossArchived={isBossArchived}
+              archiveBossVictory={archiveBossVictory}
+              completedToday={completedToday}
+              resetApp={resetApp}
+              bossPulse={bossPulse}
+            />
+          )}
+
+        {tab === 'settings' && (
+            <SettingsTab
+              session={session}
+              cloudAvailable={cloudAvailable}
+              localMode={localMode}
+              signOut={signOut}
+              settings={settings}
+              setSettings={setSettings}
+              exportSaveData={exportSaveData}
+              importSaveData={importSaveData}
+              resetApp={resetApp}
+              backupMessage={backupMessage}
+            />
+          )}
       </section>
 
       <WorkoutProofModal
