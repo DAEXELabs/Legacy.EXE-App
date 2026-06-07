@@ -18,10 +18,11 @@ export function BossTab({
   archiveBossVictory,
   completedToday,
   resetApp,
+  bossPulse,
 }) {
   return (
     <section className="screen-stack">
-      <div className="boss-card boss-screen">
+      <div className={`boss-card boss-screen ${bossPulse ? 'pulse-active' : ''}`}>
         <div className="boss-avatar">
           <span className="boss-icon">{weeklyBoss.icon}</span>
         </div>

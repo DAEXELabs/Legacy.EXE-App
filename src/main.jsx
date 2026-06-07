@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Activity,
@@ -21,6 +21,7 @@ import {
   Dumbbell,
 } from 'lucide-react';
 import './styles.css';
+import { playClick, playQuestComplete, playLevelUp, playAchievement, playBossDefeat, getSoundEnabled } from './lib/soundFx';
 import { ACHIEVEMENTS } from './data/achievements';
 import { BOSSES } from './data/bosses';
 import {
@@ -232,6 +233,16 @@ function App() {
   });
 
   const [asyncState, setAsyncState] = useState(readAsyncState);
+  const [xpToast, setXpToast] = useState(null);
+  const [levelPulse, setLevelPulse] = useState(false);
+  const [bossPulse, setBossPulse] = useState(false);
+  const [questPulseId, setQuestPulseId] = useState(null);
+  const prevStateRef = useRef(null);
+  const prevBossDamageRef = useRef(0);
+
+  useEffect(() => {
+    getSoundEnabled();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -253,6 +264,50 @@ function App() {
   useEffect(() => {
     writeAsyncState(asyncState);
   }, [asyncState]);
+
+  useEffect(() => {
+    if (prevStateRef.current) {
+      const { prevLevel, prevAchievements, questXp, isBossVictory, questId } = prevStateRef.current;
+
+      if (isBossVictory) {
+        playBossDefeat();
+      } else if (state.level > prevLevel) {
+        playLevelUp();
+        setLevelPulse(true);
+        setTimeout(() => setLevelPulse(false), 800);
+      } else {
+        playQuestComplete();
+        setXpToast(questXp);
+        setQuestPulseId(questId);
+        setTimeout(() => {
+          setXpToast(null);
+          setQuestPulseId(null);
+        }, 1500);
+      }
+
+      const currentAchievements = (state.achievements || []).length;
+      if (currentAchievements > prevAchievements && !isBossVictory) {
+        playAchievement();
+      }
+
+      prevStateRef.current = null;
+    }
+  }, [state.level, state.achievements]);
+
+  useEffect(() => {
+    if (bossProgress >= 100 && !isBossArchived) {
+      setBossPulse(true);
+      setTimeout(() => setBossPulse(false), 500);
+    }
+  }, [bossProgress, isBossArchived]);
+
+  useEffect(() => {
+    if (bossDamage > prevBossDamageRef.current) {
+      setBossPulse(true);
+      setTimeout(() => setBossPulse(false), 500);
+    }
+    prevBossDamageRef.current = bossDamage;
+  }, [bossDamage]);
 
  useEffect(() => {
     if (!timerQuest || timerDone) return;
@@ -312,11 +367,17 @@ function App() {
 
   function finishOnboarding(e) {
     e.preventDefault();
+    playClick();
     const name = profileDraft.playerName.trim() || 'Operator';
     setState(prev => ({ ...prev, ...profileDraft, playerName: name, onboarded: true }));
   }
 
   function completeQuest(id, payload = {}) {
+    const prevLevel = state.level;
+    const prevAchievements = (state.achievements || []).length;
+    const quest = state.quests.find(q => q.id === id);
+    if (!quest || quest.completedToday) return;
+
     setState(prev => {
       const quest = prev.quests.find(q => q.id === id);
       if (!quest || quest.completedToday) return prev;
@@ -355,6 +416,8 @@ function App() {
         rewards = bonusProgress.rewards;
         nextLifetimeXp = bonusProgress.nextLifetimeXp;
       }
+
+      prevStateRef.current = { prevLevel, prevAchievements, questXp: quest.xp, questId: id };
 
       return {
         ...prev,
@@ -630,6 +693,9 @@ function App() {
   function archiveBossVictory() {
     if (!bossDefeated || isBossArchived) return;
 
+    const prevLevel = state.level;
+    const prevAchievements = (state.achievements || []).length;
+
     setState(prev => {
       let { nextXp, nextLevel, rewards, nextLifetimeXp } = applyXpProgress(prev, 0);
 
@@ -645,6 +711,8 @@ function App() {
         rewards = bonusProgress.rewards;
         nextLifetimeXp = bonusProgress.nextLifetimeXp;
       }
+
+      prevStateRef.current = { prevLevel, prevAchievements, questXp: 0, isBossVictory: true };
 
       return {
       ...prev,
@@ -705,6 +773,7 @@ function App() {
 
   function addQuest(e) {
     e.preventDefault();
+    playClick();
 
     if (!newQuest.title.trim()) return;
 
@@ -911,14 +980,14 @@ function App() {
             <label>Avatar</label>
             <div className="emoji-grid">
               {['⚔️', '🛡️', '🔥', '🧠', '👑', '🐺', '⚡', '🧱'].map(icon => (
-                <button
-                  type="button"
-                  key={icon}
-                  className={profileDraft.avatar === icon ? 'active' : ''}
-                  onClick={() => setProfileDraft({ ...profileDraft, avatar: icon })}
-                >
-                  {icon}
-                </button>
+<button
+                      type="button"
+                      key={icon}
+                      className={profileDraft.avatar === icon ? 'active' : ''}
+                      onClick={() => { playClick(); setProfileDraft({ ...profileDraft, avatar: icon }); }}
+                    >
+                      {icon}
+                    </button>
               ))}
             </div>
 
@@ -950,14 +1019,16 @@ function App() {
             <p className="eyebrow">LEGACY.EXE</p>
             <h1>Execute your legacy.</h1>
           </div>
-          <div className="level-pill">LVL {state.level}</div>
+          <div className={`level-pill ${levelPulse ? 'glow-active' : ''}`}>LVL {state.level}</div>
         </header>
+
+        {xpToast && <div className="xp-toast">+{xpToast} XP</div>}
 
         <nav className="tabs">
           {['home', 'quests', 'compile', 'reading', 'chronicle', 'feed', 'async', 'achievements', 'character', 'boss'].map(item => (
             <button
               key={item}
-              onClick={() => setTab(item)}
+              onClick={() => { playClick(); setTab(item); }}
               className={tab === item ? 'active' : ''}
             >
               {item}
@@ -1031,26 +1102,26 @@ function App() {
               {backupMessage && <div className="chronicle-reward">{backupMessage}</div>}
             </div>
 
-            <div className="boss-card">
-              <div className="row-between">
-                <div>
-                  <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
-                  <h3>{weeklyBoss.name}</h3>
-                  <p className="boss-meta">
-                    {weeklyBoss.archetype} • Domain: {weeklyBoss.domain}
-                  </p>
-                </div>
-                <span className="boss-mini-icon">{weeklyBoss.icon}</span>
-              </div>
-              <p>{weeklyBoss.description}</p>
-              <p>{driftMessage}</p>
-              <div className="progress-track">
-                <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
-              </div>
-              <small>
-                {bossDamage} damage dealt • {bossHpRemaining}/{weeklyBoss.hp} HP remaining • {streakMultiplier}x streak
-              </small>
-            </div>
+<div className={`boss-card ${bossPulse ? 'shake-active' : ''}`}>
+               <div className="row-between">
+                 <div>
+                   <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
+                   <h3>{weeklyBoss.name}</h3>
+                   <p className="boss-meta">
+                     {weeklyBoss.archetype} • Domain: {weeklyBoss.domain}
+                   </p>
+                 </div>
+                 <span className="boss-mini-icon">{weeklyBoss.icon}</span>
+               </div>
+               <p>{weeklyBoss.description}</p>
+               <p>{driftMessage}</p>
+               <div className="progress-track">
+                 <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
+               </div>
+               <small>
+                 {bossDamage} damage dealt • {bossHpRemaining}/{weeklyBoss.hp} HP remaining • {streakMultiplier}x streak
+               </small>
+             </div>
 
             <div className="quest-list">
               <div className="row-between">
@@ -1069,6 +1140,7 @@ function App() {
                     onComplete={requestQuestCompletion}
                     STAT_META={STAT_META}
                     PROOF_META={PROOF_META}
+                    pulseActive={questPulseId === q.id}
                   />
                 ))}
             </div>
@@ -1282,15 +1354,16 @@ function App() {
                     </span>
                   </div>
 
-                  {statQuests.map(q => (
-                    <div className="quest-edit-shell" key={q.id}>
-                      <div className="quest-manage-row">
-                        <QuestItem
-                          quest={q}
-                          onComplete={requestQuestCompletion}
-                          STAT_META={STAT_META}
-                          PROOF_META={PROOF_META}
-                        />
+{statQuests.map(q => (
+                      <div className="quest-edit-shell" key={q.id}>
+                        <div className="quest-manage-row">
+                          <QuestItem
+                            quest={q}
+                            onComplete={requestQuestCompletion}
+                            STAT_META={STAT_META}
+                            PROOF_META={PROOF_META}
+                            pulseActive={questPulseId === q.id}
+                          />
 
                         <div className="quest-manage-actions">
                           <button
@@ -1471,22 +1544,23 @@ function App() {
           />
         )}
 
-        {tab === 'boss' && (
-          <BossTab
-            state={state}
-            weeklyBoss={weeklyBoss}
-            bossHpRemaining={bossHpRemaining}
-            baseBossDamage={baseBossDamage}
-            streakMultiplier={streakMultiplier}
-            driftMessage={driftMessage}
-            bossProgress={bossProgress}
-            bossDefeated={bossDefeated}
-            isBossArchived={isBossArchived}
-            archiveBossVictory={archiveBossVictory}
-            completedToday={completedToday}
-            resetApp={resetApp}
-          />
-        )}
+{tab === 'boss' && (
+           <BossTab
+             state={state}
+             weeklyBoss={weeklyBoss}
+             bossHpRemaining={bossHpRemaining}
+             baseBossDamage={baseBossDamage}
+             streakMultiplier={streakMultiplier}
+             driftMessage={driftMessage}
+             bossProgress={bossProgress}
+             bossDefeated={bossDefeated}
+             isBossArchived={isBossArchived}
+             archiveBossVictory={archiveBossVictory}
+             completedToday={completedToday}
+             resetApp={resetApp}
+             bossPulse={bossPulse}
+           />
+         )}
       </section>
 
       <WorkoutProofModal

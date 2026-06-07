@@ -1,11 +1,19 @@
 import { CheckCircle2 } from 'lucide-react';
+import { playClick } from '../lib/soundFx';
 
-export function QuestItem({ quest, onComplete, STAT_META, PROOF_META }) {
+export function QuestItem({ quest, onComplete, STAT_META, PROOF_META, pulseActive }) {
   const Icon = STAT_META[quest.stat].icon;
   const ProofIcon = PROOF_META[quest.proof]?.icon || CheckCircle2;
 
+  const handleClick = () => {
+    if (!quest.completedToday) {
+      playClick();
+      onComplete(quest);
+    }
+  };
+
   return (
-    <article className={`quest-item ${quest.completedToday ? 'complete' : ''}`}>
+    <article className={`quest-item ${quest.completedToday ? 'complete' : ''} ${pulseActive ? 'pulse-active' : ''}`}>
       <div className="quest-left">
         <div className="quest-icon">
           <Icon size={20} />
@@ -23,7 +31,7 @@ export function QuestItem({ quest, onComplete, STAT_META, PROOF_META }) {
       </div>
 
       <button
-        onClick={() => onComplete(quest)}
+        onClick={handleClick}
         disabled={quest.completedToday}
         className="complete-btn"
       >
