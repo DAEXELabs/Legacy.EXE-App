@@ -16,7 +16,7 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
   const [blockedIds, setBlockedIds] = useState(new Set());
 
   useEffect(() => {
-    if (!cloudAvailable || !session) {
+    if (!cloudAvailable || !session || !currentUserId) {
       setLoading(false);
       return;
     }
@@ -24,9 +24,11 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
 
     async function load() {
       setLoading(true);
-      const { data: postsData } = await getPublicChronicleFeed();
-      const { data: following } = await getFollowing(currentUserId);
-      const { data: blocked } = await getBlockedUsers(currentUserId);
+      const [{ data: postsData }, { data: following }, { data: blocked }] = await Promise.all([
+        getPublicChronicleFeed(),
+        getFollowing(currentUserId),
+        getBlockedUsers(currentUserId),
+      ]);
 
       if (!cancelled) {
         setPosts(postsData || []);
@@ -42,11 +44,13 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
 
   const handleEncourage = async (post) => {
     if (!cloudAvailable || !session) return;
-    await encouragePost(post.id, currentUserId);
-    setPosts(prev => prev.map(p => p.id === post.id ? {
-      ...p,
-      encouragement_count: Number(p.encouragement_count || 0) + 1,
-    } : p));
+    const { error } = await encouragePost(post.id, currentUserId);
+    if (!error) {
+      setPosts(prev => prev.map(p => p.id === post.id ? {
+        ...p,
+        encouragement_count: Number(p.encouragement_count || 0) + 1,
+      } : p));
+    }
   };
 
   const handleFollow = async (post) => {

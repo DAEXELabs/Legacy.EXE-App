@@ -20,7 +20,7 @@ export function createInitialAsyncState() {
 
 export function readAsyncState() {
   try {
-    const raw = localStorage.getItem('legacy-async-state-v1');
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('legacy-async-state-v1') : null;
     if (!raw) return createInitialAsyncState();
 
     const parsed = JSON.parse(raw);
@@ -45,7 +45,9 @@ export function readAsyncState() {
 }
 
 export function writeAsyncState(state) {
-  localStorage.setItem('legacy-async-state-v1', JSON.stringify(state));
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('legacy-async-state-v1', JSON.stringify(state));
+  }
 }
 
 export function queueTrigger(state, input) {

@@ -1,35 +1,31 @@
 let audioCtx = null;
 let soundEnabled = true;
 
-function getAudioContextConstructor() {
-  if (typeof window === 'undefined') return null;
-  return window.AudioContext || window.webkitAudioContext || null;
-}
-
 function initAudio() {
+  if (typeof window === 'undefined') return;
   if (audioCtx) return;
-
-  const AudioContextConstructor = getAudioContextConstructor();
-  if (!AudioContextConstructor) return;
-
   try {
-    audioCtx = new AudioContextConstructor();
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextConstructor) {
+      audioCtx = new AudioContextConstructor();
+    }
   } catch {
-    audioCtx = null;
+    // AudioContext unavailable
   }
 }
 
 function ensureInteraction() {
-  initAudio();
-
-  if (audioCtx?.state === 'suspended') {
-    audioCtx.resume().catch(() => {});
+  if (typeof window === 'undefined') return;
+  if (!audioCtx) {
+    initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
   }
 }
 
 export function setSoundEnabled(enabled) {
   soundEnabled = Boolean(enabled);
-
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem('legacy-exe-sound-enabled', String(soundEnabled));
   }
@@ -42,13 +38,12 @@ export function getSoundEnabled() {
       soundEnabled = stored === 'true';
     }
   }
-
   return soundEnabled;
 }
 
 function playTone({ frequency, duration, type = 'sine', volume = 0.1 }) {
   if (!soundEnabled) return;
-
+  if (typeof window === 'undefined') return;
   ensureInteraction();
 
   if (!audioCtx) return;
@@ -79,23 +74,43 @@ export function playClick() {
 }
 
 export function playQuestComplete() {
+  if (!soundEnabled) return;
+  if (typeof window === 'undefined') return;
+  ensureInteraction();
+  if (!audioCtx) return;
+
   playTone({ frequency: 440, duration: 0.1, type: 'sine', volume: 0.1 });
   setTimeout(() => playTone({ frequency: 660, duration: 0.15, type: 'sine', volume: 0.08 }), 50);
 }
 
 export function playLevelUp() {
+  if (!soundEnabled) return;
+  if (typeof window === 'undefined') return;
+  ensureInteraction();
+  if (!audioCtx) return;
+
   playTone({ frequency: 330, duration: 0.12, type: 'sine', volume: 0.1 });
   setTimeout(() => playTone({ frequency: 440, duration: 0.12, type: 'sine', volume: 0.1 }), 80);
   setTimeout(() => playTone({ frequency: 660, duration: 0.18, type: 'sine', volume: 0.12 }), 160);
 }
 
 export function playAchievement() {
+  if (!soundEnabled) return;
+  if (typeof window === 'undefined') return;
+  ensureInteraction();
+  if (!audioCtx) return;
+
   playTone({ frequency: 523, duration: 0.08, type: 'sine', volume: 0.1 });
   setTimeout(() => playTone({ frequency: 659, duration: 0.08, type: 'sine', volume: 0.1 }), 80);
   setTimeout(() => playTone({ frequency: 784, duration: 0.12, type: 'sine', volume: 0.12 }), 160);
 }
 
 export function playBossDefeat() {
+  if (!soundEnabled) return;
+  if (typeof window === 'undefined') return;
+  ensureInteraction();
+  if (!audioCtx) return;
+
   playTone({ frequency: 220, duration: 0.15, type: 'sine', volume: 0.15 });
   setTimeout(() => playTone({ frequency: 165, duration: 0.15, type: 'sine', volume: 0.12 }), 100);
   setTimeout(() => playTone({ frequency: 330, duration: 0.2, type: 'sine', volume: 0.1 }), 250);
