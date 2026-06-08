@@ -280,6 +280,24 @@ function App() {
     writeAsyncState(asyncState);
   }, [asyncState]);
 
+  const weeklyBoss = getWeeklyBoss();
+  const currentLevelXp = xpForLevel(state.level);
+  const progress = Math.min(100, Math.round((state.xp / currentLevelXp) * 100));
+  const baseBossDamage = getBossDamage(state.quests, state.chroniclePosts || []);
+  const streakMultiplier = getStreakMultiplier(state.streak);
+  const bossDamage = Math.round(baseBossDamage * streakMultiplier);
+  const bossProgress = Math.min(100, Math.round((bossDamage / weeklyBoss.hp) * 100));
+  const bossHpRemaining = Math.max(0, weeklyBoss.hp - bossDamage);
+  const bossDefeated = bossProgress >= 100;
+  const isBossArchived = (state.bossArchive || []).some(
+    entry => entry.name === weeklyBoss.name && entry.week === weeklyBoss.week
+  );
+  const tier = computeTier(state.level);
+  const completedToday = state.quests.filter(q => q.completedToday).length;
+  const dailyXpEarned = state.quests.filter(q => q.completedToday).reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
+  const strongestStat = Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0];
+  const readingGoal = state.readingGoal || starterState.readingGoal;
+
   useEffect(() => {
     if (prevStateRef.current) {
       const { prevLevel, prevAchievements, questXp, isBossVictory, questId } = prevStateRef.current;
@@ -330,27 +348,6 @@ function App() {
     return () => clearTimeout(timeout);
   }, [timerQuest, timerDone]);
 
-  const weeklyBoss = getWeeklyBoss();
-  const currentLevelXp = xpForLevel(state.level);
-  const progress = Math.min(100, Math.round((state.xp / currentLevelXp) * 100));
-  const baseBossDamage = getBossDamage(state.quests, state.chroniclePosts || []);
-  const streakMultiplier = getStreakMultiplier(state.streak);
-  const bossDamage = Math.round(baseBossDamage * streakMultiplier);
-  const bossProgress = Math.min(100, Math.round((bossDamage / weeklyBoss.hp) * 100));
-  const bossHpRemaining = Math.max(0, weeklyBoss.hp - bossDamage);
-  const bossDefeated = bossProgress >= 100;
-  const isBossArchived = (state.bossArchive || []).some(
-    entry => entry.name === weeklyBoss.name && entry.week === weeklyBoss.week
-  );
-  const tier = computeTier(state.level);
-  const completedToday = state.quests.filter(q => q.completedToday).length;
-
-  const dailyXpEarned = state.quests
-    .filter(q => q.completedToday)
-    .reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
-
-  const strongestStat = Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0];
-  const readingGoal = state.readingGoal || starterState.readingGoal;
   const booksProgress = Math.min(
     100,
     Math.round((Number(readingGoal.booksCompleted || 0) / Math.max(Number(readingGoal.monthlyBooksTarget || 1), 1)) * 100)
