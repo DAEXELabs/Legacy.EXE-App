@@ -1,3 +1,7 @@
+import { useState } from 'react';
+import { BlockUserButton } from './BlockUserButton';
+import { ReportModal } from './ReportModal';
+
 export function ChroniclePostCard({
   post,
   profile,
@@ -7,6 +11,7 @@ export function ChroniclePostCard({
   followingIds,
   showActions = true,
 }) {
+  const [showReportModal, setShowReportModal] = useState(false);
   const avatar = profile?.avatar || '⚔️';
   const name = profile?.display_name || profile?.username || 'Operator';
   const title = profile?.title || 'Uncompiled Operator';
@@ -36,20 +41,38 @@ export function ChroniclePostCard({
         <span>• +{post.xp || 25} XP</span>
       </div>
 
-      {showActions && (
+      {showActions && post.user_id !== currentUserId && (
         <div className="feed-actions">
           <button className="ghost" onClick={() => onEncourage?.(post)}>
             Encourage ({post.encouragement_count || 0})
           </button>
-          {post.user_id !== currentUserId && (
-            <button
-              className={followingIds?.has(post.user_id) ? 'primary small' : 'ghost'}
-              onClick={() => onFollow?.(post)}
-            >
-              {followingIds?.has(post.user_id) ? 'Following' : 'Follow'}
-            </button>
-          )}
+          <button
+            className={followingIds?.has(post.user_id) ? 'primary small' : 'ghost'}
+            onClick={() => onFollow?.(post)}
+          >
+            {followingIds?.has(post.user_id) ? 'Following' : 'Follow'}
+          </button>
+          <div className="block-user-wrapper">
+            <BlockUserButton
+              currentUserId={currentUserId}
+              targetUserId={post.user_id}
+              onBlockChange={(blocked) => window.location.reload()}
+            />
+          </div>
+          <button className="ghost small" onClick={() => setShowReportModal(true)}>
+            Report
+          </button>
         </div>
+      )}
+
+      {showReportModal && (
+        <ReportModal
+          reporterId={currentUserId}
+          reportedUserId={post.user_id}
+          postId={post.id}
+          onClose={() => setShowReportModal(false)}
+          onSuccess={() => setShowReportModal(false)}
+        />
       )}
     </article>
   );

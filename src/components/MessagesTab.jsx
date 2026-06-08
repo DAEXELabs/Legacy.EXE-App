@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Send, Plus, Mail, User as UserIcon } from 'lucide-react';
-import { getMyThreads, getThreadMessages, sendDirectMessage, getPublishedNewsletters } from '../lib/socialApi';
+import { getMyThreads, getThreadMessages, sendDirectMessage, getPublishedNewsletters, createOrGetDirectThread, getBlockedUsers } from '../lib/socialApi';
 import { NewsletterCard } from './NewsletterCard';
 
 export function MessagesTab({ session, localMode }) {
@@ -8,8 +8,10 @@ export function MessagesTab({ session, localMode }) {
   const [selectedThread, setSelectedThread] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [otherUserId, setOtherUserId] = useState('');
   const [newsletters, setNewsletters] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState('');
 
   const currentUserId = session?.user?.id;
 
@@ -21,28 +23,67 @@ export function MessagesTab({ session, localMode }) {
   }, [currentUserId]);
 
   const loadThreads = async () => {
-    const { data } = await getMyThreads(currentUserId);
-    setThreads(data || []);
+    const { data, error } = await getMyThreads(currentUserId);
+    if (error) {
+      setStatus('Failed to load threads: ' + error.message);
+    } else {
+      setThreads(data || []);
+    }
   };
 
   const loadNewsletters = async () => {
-    const { data } = await getPublishedNewsletters();
-    setNewsletters(data || []);
+    const { data, error } = await getPublishedNewsletters();
+    if (error) {
+      setStatus('Failed to load newsletters: ' + error.message);
+    } else {
+      setNewsletters(data || []);
+    }
   };
 
   const openThread = async (thread) => {
     setSelectedThread(thread);
     setLoading(true);
-    const { data } = await getThreadMessages(thread.id, currentUserId);
-    setMessages(data || []);
+    const { data, error } = await getThreadMessages(thread.id, currentUserId);
+    if (error) {
+      setStatus('Failed to load messages: ' + error.message);
+    } else {
+      setMessages(data || []);
+    }
     setLoading(false);
+  };
+
+  const handleStartDm = async (e) => {
+    e.preventDefault();
+    const targetId = otherUserId.trim();
+    if (!targetId || targetId === currentUserId) {
+      setStatus('Invalid user ID. Cannot message yourself.');
+      return;
+    }
+
+    setLoading(true);
+    setStatus('');
+    const { data, error } = await createOrGetDirectThread(currentUserId, targetId);
+    setLoading(false);
+
+    if (error) {
+      setStatus('Failed to start conversation: ' + error.message);
+    } else {
+      setOtherUserId('');
+      setSelectedThread(data);
+      setMessages([]);
+      loadThreads();
+    }
   };
 
   const handleSend = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedThread) return;
 
-    const { data } = await sendDirectMessage(selectedThread.id, currentUserId, newMessage.trim());
+    const { data, error } = await sendDirectMessage(selectedThread.id, currentUserId, newMessage.trim());
+    if (error) {
+      setStatus('Failed to send message: ' + error.message);
+      return;
+    }
     if (data) {
       setMessages([...messages, data]);
       setNewMessage('');
@@ -76,6 +117,26 @@ export function MessagesTab({ session, localMode }) {
           {newsletters.map(n => (
             <NewsletterCard key={n.id} newsletter={n} />
           ))}
+        </div>
+      )}
+
+      <form className="form-card" onSubmit={handleStartDm}>
+        <h3>Start a Conversation</h3>
+        <div className="form-grid">
+          <input
+            value={otherUserId}
+            onChange={e => setOtherUserId(e.target.value)}
+            placeholder="User ID to message..."
+          />
+          <button type="submit" className="primary" disabled={!otherUserId.trim()}>
+            <Send size={16} />
+          </button>
+        </div>
+      </form>
+
+      {status && (
+        <div className="auth-error">
+          {status}
         </div>
       )}
 

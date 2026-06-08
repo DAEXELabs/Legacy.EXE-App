@@ -5,6 +5,7 @@ import {
   followUser,
   unfollowUser,
   getFollowing,
+  getBlockedUsers,
 } from '../lib/socialApi';
 import { ChroniclePostCard } from './ChroniclePostCard';
 
@@ -12,6 +13,7 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [followingIds, setFollowingIds] = useState(new Set());
+  const [blockedIds, setBlockedIds] = useState(new Set());
 
   useEffect(() => {
     if (!cloudAvailable || !session) {
@@ -22,13 +24,16 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
 
     async function load() {
       setLoading(true);
-      const { data } = await getPublicChronicleFeed();
-      if (!cancelled && data) setPosts(data);
+      const { data: postsData } = await getPublicChronicleFeed();
       const { data: following } = await getFollowing(currentUserId);
-      if (!cancelled && following) {
-        setFollowingIds(new Set(following.map(f => f.following_id)));
+      const { data: blocked } = await getBlockedUsers(currentUserId);
+
+      if (!cancelled) {
+        setPosts(postsData || []);
+        setFollowingIds(new Set((following || []).map(f => f.following_id)));
+        setBlockedIds(new Set((blocked || []).map(b => b.blocked_id)));
+        setLoading(false);
       }
-      if (!cancelled) setLoading(false);
     }
 
     load();
@@ -59,6 +64,8 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
       setFollowingIds(prev => new Set(prev).add(authorId));
     }
   };
+
+  const visiblePosts = posts.filter(post => !blockedIds.has(post.user_id));
 
   if (!cloudAvailable) {
     return (
@@ -100,7 +107,7 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
         <p>See what other operators are building and recording.</p>
       </div>
 
-      {posts.length === 0 && (
+      {visiblePosts.length === 0 && (
         <div className="empty-state">
           <p>No public posts yet.</p>
           <strong>Be the first to share your proof publicly.</strong>
@@ -108,7 +115,7 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
       )}
 
       <div className="feed-list">
-        {posts.map(post => (
+        {visiblePosts.map(post => (
           <ChroniclePostCard
             key={post.id}
             post={post}
