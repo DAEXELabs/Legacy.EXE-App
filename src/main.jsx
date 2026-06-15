@@ -57,6 +57,7 @@ import { CheckinModal } from './components/CheckinModal';
 import { TimerModal } from './components/TimerModal';
 import { useCloudSync } from './hooks/useCloudSync';
 import ArchetypeSelector from './components/ArchetypeSelector';
+import SkillTree from './components/SkillTree';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 const QUEST_XP_MIN = 10;
@@ -1549,23 +1550,25 @@ function App() {
           </section>
         )}
 
-        {tab === 'character' && (
-          <CharacterTab
-            state={state}
-            dominantStat={dominantStat}
-            tier={tier}
-            STAT_META={STAT_META}
-            strongestStat={strongestStat}
-            workoutRegimen={workoutRegimen}
-            streakMultiplier={streakMultiplier}
-            bossProgress={bossProgress}
-            completedToday={completedToday}
-            dailyXpEarned={dailyXpEarned}
-            readingGoal={readingGoal}
-            booksProgress={booksProgress}
-            readingXpEarned={readingXpEarned}
-          />
-        )}
+{tab === 'character' && (
+           <CharacterTab
+             state={state}
+             dominantStat={dominantStat}
+             tier={tier}
+             STAT_META={STAT_META}
+             strongestStat={strongestStat}
+             workoutRegimen={workoutRegimen}
+             streakMultiplier={streakMultiplier}
+             bossProgress={bossProgress}
+             completedToday={completedToday}
+             dailyXpEarned={dailyXpEarned}
+             readingGoal={readingGoal}
+             booksProgress={booksProgress}
+             readingXpEarned={readingXpEarned}
+             archetype={state.archetype}
+             xp={state.xp}
+           />
+         )}
 
 {tab === 'boss' && (
             <BossTab
