@@ -362,3 +362,7 @@ textarea { min-height: 96px; resize: vertical; }
   .tabs { grid-template-columns: repeat(3, 1fr); }
   .tabs button { font-size: 10px; padding: 9px 3px; }
 }
+
+.neon-glow {
+  text-shadow: 0 0 10px #3b82f6, 0 0 20px #3b82f6;
+}

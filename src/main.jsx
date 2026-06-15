@@ -56,6 +56,7 @@ import { WorkoutProofModal } from './components/WorkoutProofModal';
 import { CheckinModal } from './components/CheckinModal';
 import { TimerModal } from './components/TimerModal';
 import { useCloudSync } from './hooks/useCloudSync';
+import ArchetypeSelector from './components/ArchetypeSelector';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 const QUEST_XP_MIN = 10;
@@ -383,6 +384,15 @@ function App() {
     const name = profileDraft.playerName.trim() || 'Operator';
     setState(prev => ({ ...prev, ...profileDraft, playerName: name, onboarded: true }));
   }
+
+  const handleArchetypeSelect = (archetype) => {
+    playClick();
+    setState(prev => ({ 
+      ...prev, 
+      archetype: archetype.id, 
+      title: archetype.title || 'The Uncompiled' 
+    }));
+  };
 
   function completeQuest(id, payload = {}) {
     const prevLevel = state.level;
@@ -992,14 +1002,14 @@ function App() {
             <label>Avatar</label>
             <div className="emoji-grid">
               {['⚔️', '🛡️', '🔥', '🧠', '👑', '🐺', '⚡', '🧱'].map(icon => (
-<button
-                      type="button"
-                      key={icon}
-                      className={profileDraft.avatar === icon ? 'active' : ''}
-                      onClick={() => { playClick(); setProfileDraft({ ...profileDraft, avatar: icon }); }}
-                    >
-                      {icon}
-                    </button>
+                <button
+                  type="button"
+                  key={icon}
+                  className={profileDraft.avatar === icon ? 'active' : ''}
+                  onClick={() => { playClick(); setProfileDraft({ ...profileDraft, avatar: icon }); }}
+                >
+                  {icon}
+                </button>
               ))}
             </div>
 
@@ -1018,6 +1028,7 @@ function App() {
 
             <button className="primary">Begin Compile</button>
           </form>
+          <ArchetypeSelector onSelect={handleArchetypeSelect} />
         </section>
       </main>
     );
