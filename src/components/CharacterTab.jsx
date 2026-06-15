@@ -1,4 +1,5 @@
 import { Brain, Trophy } from 'lucide-react';
+import CharacterProfile from './CharacterProfile';
 import SkillTree from './SkillTree';
 
 export function CharacterTab({
@@ -42,6 +43,13 @@ export function CharacterTab({
         <div className="profile-metric"><span>Damage Multiplier</span><strong>{streakMultiplier}x</strong></div>
         <div className="profile-metric"><span>Achievements</span><strong>{(state.achievements || []).length}</strong></div>
       </div>
+
+      <CharacterProfile
+        archetype={archetype}
+        stats={state.stats}
+        level={state.level}
+        xp={xp}
+      />
 
       <div className="stats-grid">
         {Object.entries(STAT_META).map(([key, meta]) => {
