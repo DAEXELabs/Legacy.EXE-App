@@ -58,6 +58,7 @@ import { TimerModal } from './components/TimerModal';
 import { useCloudSync } from './hooks/useCloudSync';
 import ArchetypeSelector from './components/ArchetypeSelector';
 import SkillTree from './components/SkillTree';
+import DailyQuestGenerator from './components/DailyQuestGenerator';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 const QUEST_XP_MIN = 10;
@@ -1147,28 +1148,38 @@ function App() {
                </small>
              </div>
 
-            <div className="quest-list">
-              <div className="row-between">
-                <h3>Today&apos;s Quests</h3>
-                <button className="ghost" onClick={resetDay}>
-                  <RotateCcw size={16} /> Reset day
-                </button>
-              </div>
+<div className="quest-list">
+               <div className="row-between">
+                 <h3>Today&apos;s Quests</h3>
+                 <button className="ghost" onClick={resetDay}>
+                   <RotateCcw size={16} /> Reset day
+                 </button>
+               </div>
 
-              {state.quests
+               <DailyQuestGenerator
+                 archetype={state.archetype}
+                 onQuestGenerated={(newQuest) =>
+                   setState(prev => ({
+                     ...prev,
+                     quests: [...prev.quests, newQuest],
+                   }))
+                 }
+               />
+
+               {state.quests
                 .slice(0, 4)
-                .map(q => (
-                  <QuestItem
-                    key={q.id}
-                    quest={q}
-                    onComplete={requestQuestCompletion}
-                    STAT_META={STAT_META}
-                    PROOF_META={PROOF_META}
-                    pulseActive={questPulseId === q.id}
-                  />
-                ))}
-            </div>
-          </section>
+.map(q => (
+                    <QuestItem
+                      key={q.id}
+                      quest={q}
+                      onComplete={requestQuestCompletion}
+                      STAT_META={STAT_META}
+                      PROOF_META={PROOF_META}
+                      pulseActive={questPulseId === q.id}
+                    />
+                  ))}
+                </div>
+              </section>
         )}
 
         {tab === 'compile' && (
