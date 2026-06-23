@@ -1,4 +1,17 @@
-export function OnboardingScreen({ profileDraft, setProfileDraft, finishOnboarding }) {
+import AvatarUploader from './AvatarUploader';
+import ArchetypeSelector from './ArchetypeSelector';
+import { playClick } from '../lib/soundFx';
+
+export function OnboardingScreen({ profileDraft, setProfileDraft, finishOnboarding, onArchetypeSelect }) {
+  const handleAvatarChange = (url) => {
+    setProfileDraft({ ...profileDraft, avatar: url });
+  };
+
+  const handleArchetypeClick = (archetype) => {
+    playClick();
+    if (onArchetypeSelect) onArchetypeSelect(archetype);
+  };
+
   return (
     <main className="app-shell">
       <section className="phone-frame onboarding-frame">
@@ -9,7 +22,10 @@ export function OnboardingScreen({ profileDraft, setProfileDraft, finishOnboardi
         </p>
 
         <form className="form-card onboarding-card" onSubmit={finishOnboarding}>
-          <div className="avatar forge-avatar">{profileDraft.avatar}</div>
+          <AvatarUploader
+            currentAvatar={profileDraft.avatar}
+            onAvatarChange={handleAvatarChange}
+          />
 
           <label>Operator Name</label>
           <input
@@ -18,14 +34,14 @@ export function OnboardingScreen({ profileDraft, setProfileDraft, finishOnboardi
             placeholder="Raymond, Operator, Builder..."
           />
 
-          <label>Avatar</label>
+          <label>Avatar Style</label>
           <div className="emoji-grid">
             {['⚔️', '🛡️', '🔥', '🧠', '👑', '🐺', '⚡', '🧱'].map(icon => (
               <button
                 type="button"
                 key={icon}
                 className={profileDraft.avatar === icon ? 'active' : ''}
-                onClick={() => setProfileDraft({ ...profileDraft, avatar: icon })}
+                onClick={() => { playClick(); setProfileDraft({ ...profileDraft, avatar: icon }); }}
               >
                 {icon}
               </button>
@@ -45,6 +61,7 @@ export function OnboardingScreen({ profileDraft, setProfileDraft, finishOnboardi
 
           <button className="primary">Begin Compile</button>
         </form>
+        <ArchetypeSelector onSelect={handleArchetypeClick} />
       </section>
     </main>
   );
