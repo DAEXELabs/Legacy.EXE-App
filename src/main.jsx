@@ -42,7 +42,7 @@ import {
 import { starterState } from './data/starterState';
 import { AuthScreen } from './components/AuthScreen';
 import { UserMenu } from './components/UserMenu';
-import { SocialFeedTab } from './components/SocialFeedTab';
+import { FriendList } from './components/SocialFeedTab';
 import { ChronicleTab } from './components/ChronicleTab';
 import { ReadingTab } from './components/ReadingTab';
 import { BossTab } from './components/BossTab';
@@ -1006,7 +1006,7 @@ function App() {
         {xpToast && <div className="xp-toast">+{xpToast} XP</div>}
 
         <nav className="tabs">
-          {['home', 'quests', 'compile', 'reading', 'chronicle', 'feed', 'async', 'achievements', 'character', 'boss', 'settings', 'messages'].map(item => (
+          {['home', 'quests', 'compile', 'reading', 'chronicle', 'social', 'async', 'achievements', 'character', 'boss', 'settings', 'messages'].map(item => (
             <button
               key={item}
               onClick={() => { playClick(); setTab(item); }}
@@ -1241,8 +1241,8 @@ function App() {
           />
         )}
 
-        {tab === 'feed' && (
-          <SocialFeedTab
+        {tab === 'social' && (
+          <FriendList
             session={session}
             currentUserId={session?.user?.id}
             cloudAvailable={cloudAvailable}

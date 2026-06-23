@@ -135,3 +135,5 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
     </section>
   );
 }
+
+export const FriendList = SocialFeedTab;
