@@ -25,7 +25,7 @@ export function HomeTab({
     <section className="screen-stack">
       <div className="hero-card">
         <div className={`avatar ${dominantStat}`}>
-          {state.avatar && state.avatar.startsWith && state.avatar.startsWith('data:image') ? (
+          {state.avatar && state.avatar.startsWith && (state.avatar.startsWith('data:image') || state.avatar.startsWith('http')) ? (
             <img src={state.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '26px' }} />
           ) : (
             state.avatar

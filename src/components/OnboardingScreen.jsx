@@ -2,7 +2,7 @@ import AvatarUploader from './AvatarUploader';
 import ArchetypeSelector from './ArchetypeSelector';
 import { playClick } from '../lib/soundFx';
 
-export function OnboardingScreen({ profileDraft, setProfileDraft, finishOnboarding, onArchetypeSelect }) {
+export function OnboardingScreen({ profileDraft, setProfileDraft, finishOnboarding, onArchetypeSelect, session }) {
   const handleAvatarChange = (url) => {
     setProfileDraft({ ...profileDraft, avatar: url });
   };
@@ -25,6 +25,7 @@ export function OnboardingScreen({ profileDraft, setProfileDraft, finishOnboardi
           <AvatarUploader
             currentAvatar={profileDraft.avatar}
             onAvatarChange={handleAvatarChange}
+            session={session}
           />
 
           <label>Operator Name</label>

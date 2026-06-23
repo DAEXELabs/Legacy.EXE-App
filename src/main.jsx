@@ -987,6 +987,7 @@ function App() {
         setProfileDraft={setProfileDraft}
         finishOnboarding={finishOnboarding}
         onArchetypeSelect={handleArchetypeSelect}
+        session={session}
       />
     );
   }
@@ -1517,24 +1518,26 @@ function App() {
         )}
 
 {tab === 'character' && (
-           <CharacterTab
-             state={state}
-             dominantStat={dominantStat}
-             tier={tier}
-             STAT_META={STAT_META}
-             strongestStat={strongestStat}
-             workoutRegimen={workoutRegimen}
-             streakMultiplier={streakMultiplier}
-             bossProgress={bossProgress}
-             completedToday={completedToday}
-             dailyXpEarned={dailyXpEarned}
-             readingGoal={readingGoal}
-             booksProgress={booksProgress}
-             readingXpEarned={readingXpEarned}
-             archetype={state.archetype}
-             xp={state.xp}
-           />
-         )}
+            <CharacterTab
+              state={state}
+              dominantStat={dominantStat}
+              tier={tier}
+              STAT_META={STAT_META}
+              strongestStat={strongestStat}
+              workoutRegimen={workoutRegimen}
+              streakMultiplier={streakMultiplier}
+              bossProgress={bossProgress}
+              completedToday={completedToday}
+              dailyXpEarned={dailyXpEarned}
+              readingGoal={readingGoal}
+              booksProgress={booksProgress}
+              readingXpEarned={readingXpEarned}
+              archetype={state.archetype}
+              xp={state.xp}
+              session={session}
+              setState={setState}
+            />
+          )}
 
 {tab === 'boss' && (
             <BossTab

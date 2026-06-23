@@ -1,6 +1,7 @@
 import { Brain, Trophy } from 'lucide-react';
 import CharacterProfile from './CharacterProfile';
 import SkillTree from './SkillTree';
+import AvatarUploader from './AvatarUploader';
 
 export function CharacterTab({
   state,
@@ -18,12 +19,18 @@ export function CharacterTab({
   readingXpEarned,
   archetype,
   xp,
+  session,
+  setState,
 }) {
+  const handleAvatarChange = (url) => {
+    setState(prev => ({ ...prev, avatar: url }));
+  };
+
   return (
     <section className="screen-stack">
       <div className="hero-card large character-card operator-profile">
         <div className={`avatar big ${dominantStat}`}>
-          {state.avatar && state.avatar.startsWith && state.avatar.startsWith('data:image') ? (
+          {state.avatar && state.avatar.startsWith && (state.avatar.startsWith('data:image') || state.avatar.startsWith('http')) ? (
             <img src={state.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '26px' }} />
           ) : (
             state.avatar
@@ -36,6 +43,12 @@ export function CharacterTab({
           <p>Level {state.level} • Streak: {state.streak} completions</p>
         </div>
       </div>
+
+      <AvatarUploader
+        currentAvatar={state.avatar}
+        onAvatarChange={handleAvatarChange}
+        session={session}
+      />
 
       <div className="profile-metrics">
         <div className="profile-metric"><span>Chronicle Entries</span><strong>{(state.chroniclePosts || []).length}</strong></div>
