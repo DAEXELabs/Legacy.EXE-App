@@ -59,6 +59,8 @@ import { useCloudSync } from './hooks/useCloudSync';
 import ArchetypeSelector from './components/ArchetypeSelector';
 import SkillTree from './components/SkillTree';
 import DailyQuestGenerator from './components/DailyQuestGenerator';
+import CharacterProfile from './components/CharacterProfile';
+import AvatarUploader from './components/AvatarUploader';
 import { OnboardingScreen } from './components/OnboardingScreen';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
