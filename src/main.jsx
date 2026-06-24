@@ -42,7 +42,8 @@ import {
 import { starterState } from './data/starterState';
 import { AuthScreen } from './components/AuthScreen';
 import { UserMenu } from './components/UserMenu';
-import { FriendList } from './components/SocialFeedTab';
+import { FriendList } from './components/FriendList';
+import { SocialFeedTab } from './components/SocialFeedTab';
 import { ChronicleTab } from './components/ChronicleTab';
 import { ReadingTab } from './components/ReadingTab';
 import { BossTab } from './components/BossTab';
@@ -203,6 +204,7 @@ function App() {
   });
 
   const [tab, setTab] = useState('home');
+  const [socialSubTab, setSocialSubTab] = useState('feed');
   const [backupMessage, setBackupMessage] = useState('');
   const [dailyReflection, setDailyReflection] = useState('');
   const [readingDraft, setReadingDraft] = useState({
@@ -289,7 +291,7 @@ function App() {
   const weeklyBoss = getWeeklyBoss();
   const currentLevelXp = xpForLevel(state.level);
   const progress = Math.min(100, Math.round((state.xp / currentLevelXp) * 100));
-  const baseBossDamage = getBossDamage(state.quests, state.chroniclePosts || []);
+  const baseBossDamage = getBossDamage(state.quests, state.chroniclePosts || [], state.stats, weeklyBoss);
   const streakMultiplier = getStreakMultiplier(state.streak);
   const bossDamage = Math.round(baseBossDamage * streakMultiplier);
   const bossProgress = Math.min(100, Math.round((bossDamage / weeklyBoss.hp) * 100));
@@ -1243,13 +1245,41 @@ function App() {
           />
         )}
 
-        {tab === 'social' && (
-          <FriendList
-            session={session}
-            currentUserId={session?.user?.id}
-            cloudAvailable={cloudAvailable}
-          />
-        )}
+{tab === 'social' && (
+           <section className="screen-stack">
+             <div className="tabs social-sub-tabs">
+               <button
+                 key="feed"
+                 onClick={() => { playClick(); setSocialSubTab('feed'); }}
+                 className={socialSubTab === 'feed' ? 'active' : ''}
+               >
+                 Feed
+               </button>
+               <button
+                 key="friends"
+                 onClick={() => { playClick(); setSocialSubTab('friends'); }}
+                 className={socialSubTab === 'friends' ? 'active' : ''}
+               >
+                 Friends
+               </button>
+             </div>
+ 
+             {socialSubTab === 'feed' && (
+               <SocialFeedTab
+                 session={session}
+                 currentUserId={session?.user?.id}
+                 cloudAvailable={cloudAvailable}
+               />
+             )}
+             {socialSubTab === 'friends' && (
+               <FriendList
+                 session={session}
+                 currentUserId={session?.user?.id}
+                 cloudAvailable={cloudAvailable}
+               />
+             )}
+           </section>
+         )}
 
         {tab === 'async' && (
           <AsyncQueueDisplay
@@ -1520,66 +1550,67 @@ function App() {
         )}
 
 {tab === 'character' && (
-            <CharacterTab
-              state={state}
-              dominantStat={dominantStat}
-              tier={tier}
-              STAT_META={STAT_META}
-              strongestStat={strongestStat}
-              workoutRegimen={workoutRegimen}
-              streakMultiplier={streakMultiplier}
-              bossProgress={bossProgress}
-              completedToday={completedToday}
-              dailyXpEarned={dailyXpEarned}
-              readingGoal={readingGoal}
-              booksProgress={booksProgress}
-              readingXpEarned={readingXpEarned}
-              archetype={state.archetype}
-              xp={state.xp}
-              session={session}
-              setState={setState}
-            />
-          )}
+          <CharacterTab
+            state={state}
+            dominantStat={dominantStat}
+            tier={tier}
+            STAT_META={STAT_META}
+            strongestStat={strongestStat}
+            workoutRegimen={workoutRegimen}
+            streakMultiplier={streakMultiplier}
+            bossProgress={bossProgress}
+            completedToday={completedToday}
+            dailyXpEarned={dailyXpEarned}
+            readingGoal={readingGoal}
+            booksProgress={booksProgress}
+            readingXpEarned={readingXpEarned}
+            archetype={state.archetype}
+            xp={state.xp}
+            session={session}
+            setState={setState}
+          />
+        )}
 
 {tab === 'boss' && (
-            <BossTab
-              state={state}
-              weeklyBoss={weeklyBoss}
-              bossHpRemaining={bossHpRemaining}
-              baseBossDamage={baseBossDamage}
-              streakMultiplier={streakMultiplier}
-              driftMessage={driftMessage}
-              bossProgress={bossProgress}
-              bossDefeated={bossDefeated}
-              isBossArchived={isBossArchived}
-              archiveBossVictory={archiveBossVictory}
-              completedToday={completedToday}
-              resetApp={resetApp}
-              bossPulse={bossPulse}
-            />
-          )}
+          <BossTab
+            state={state}
+            weeklyBoss={weeklyBoss}
+            bossHpRemaining={bossHpRemaining}
+            baseBossDamage={baseBossDamage}
+            streakMultiplier={streakMultiplier}
+            driftMessage={driftMessage}
+            bossProgress={bossProgress}
+            bossDefeated={bossDefeated}
+            isBossArchived={isBossArchived}
+            archiveBossVictory={archiveBossVictory}
+            completedToday={completedToday}
+            resetApp={resetApp}
+            bossPulse={bossPulse}
+            dominantStat={dominantStat}
+          />
+        )}
 
         {tab === 'settings' && (
-            <SettingsTab
-              session={session}
-              cloudAvailable={cloudAvailable}
-              localMode={localMode}
-              signOut={signOut}
-              settings={settings}
-              setSettings={setSettings}
-              exportSaveData={exportSaveData}
-              importSaveData={importSaveData}
-              resetApp={resetApp}
-              backupMessage={backupMessage}
-            />
-          )}
+          <SettingsTab
+            session={session}
+            cloudAvailable={cloudAvailable}
+            localMode={localMode}
+            signOut={signOut}
+            settings={settings}
+            setSettings={setSettings}
+            exportSaveData={exportSaveData}
+            importSaveData={importSaveData}
+            resetApp={resetApp}
+            backupMessage={backupMessage}
+          />
+        )}
 
         {tab === 'messages' && (
-            <MessagesTab
-              session={session}
-              localMode={localMode}
-            />
-          )}
+          <MessagesTab
+            session={session}
+            localMode={localMode}
+          />
+        )}
       </section>
 
       <WorkoutProofModal

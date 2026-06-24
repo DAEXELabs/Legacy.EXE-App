@@ -46,14 +46,19 @@ export default function CharacterProfile({ archetype, stats, level, xp }) {
   const totalStats = statEntries.reduce((sum, [, value]) => sum + Number(value || 0), 0);
   const dominantStat = statEntries
     .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0];
+  const maxStat = Math.max(20, ...statEntries.map(([, value]) => Number(value || 0)));
 
   return (
     <section className="form-card">
       <div className="row-between">
-        <div>
+        <div className="archetype-badge-wrapper">
           <p className="eyebrow">Character Profile</p>
-          <h3>{profile.name}</h3>
-          <p>{profile.title}</p>
+          <div className="archetype-badge" style={{ borderColor: profile.color, backgroundColor: `${profile.color}15` }}>
+            <ArchetypeIcon size={22} style={{ color: profile.color }} />
+            <span style={{ color: profile.color }}>{profile.name}</span>
+          </div>
+          <h3>{profile.title}</h3>
+          <p>{profile.focus}</p>
         </div>
         <div
           className="stat-card"
@@ -66,21 +71,34 @@ export default function CharacterProfile({ archetype, stats, level, xp }) {
       </div>
 
       <div className="stat-card" style={{ borderColor: profile.color }}>
-        <span>{profile.focus}</span>
+        <span>Legacy Progress</span>
         <strong>{totalStats} total stat points</strong>
         {dominantStat && <p>Dominant stat: {statMeta[dominantStat[0]]?.label || 'Unknown'}</p>}
+        <div className="progress-track" style={{ marginTop: '10px' }}>
+          <div className="progress-fill" style={{ width: `${Math.min(100, totalStats)}%`, background: `linear-gradient(90deg, ${profile.color}, ${profile.color}88)` }} />
+        </div>
       </div>
 
       <div className="stats-grid">
         {statEntries.map(([key, value]) => {
           const meta = statMeta[key] || { label: key, icon: Sparkles, color: '#be74ff' };
           const Icon = meta.icon;
+          const barPct = Math.min(100, Math.round((Number(value || 0) / maxStat) * 100));
 
           return (
             <div className="stat-card" key={key} style={{ borderColor: meta.color }}>
               <Icon size={20} />
               <span>{meta.label}</span>
               <strong>{Number(value || 0)}</strong>
+              <div className="stat-bar-shell">
+                <div className="stat-bar-label">
+                  <span>Strength</span>
+                  <span>{barPct}%</span>
+                </div>
+                <div className="stat-bar-track">
+                  <div className="stat-bar-fill" style={{ width: `${barPct}%`, background: meta.color }} />
+                </div>
+              </div>
             </div>
           );
         })}

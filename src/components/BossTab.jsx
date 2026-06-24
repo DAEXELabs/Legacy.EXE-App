@@ -3,6 +3,7 @@ import {
   Shield,
   Sparkles,
   Trophy,
+  Skull,
 } from 'lucide-react';
 
 export function BossTab({
@@ -19,6 +20,7 @@ export function BossTab({
   completedToday,
   resetApp,
   bossPulse,
+  dominantStat,
 }) {
   return (
     <section className="screen-stack">
@@ -41,6 +43,16 @@ export function BossTab({
         <p>
           <strong>Weakness:</strong> {weeklyBoss.weakness}
         </p>
+
+        {weeklyBoss.weaknessStat && (() => {
+          const isExploited = dominantStat && dominantStat[0] === weeklyBoss.weaknessStat;
+          return (
+            <div className={`boss-weakness-badge ${isExploited ? 'exploitable' : 'neutral'}`}>
+              <Skull size={14} />
+              {isExploited ? `Your ${dominantStat[0]} exploits this weakness!` : `Weakness: ${weeklyBoss.weaknessStat}`}
+            </div>
+          );
+        })()}
 
         <div className="codex-card">
           <p className="eyebrow">Codex Entry</p>

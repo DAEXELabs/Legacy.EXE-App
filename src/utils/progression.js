@@ -34,7 +34,7 @@ export function getWeeklyBoss() {
   };
 }
 
-export function getBossDamage(quests, chroniclePosts = []) {
+export function getBossDamage(quests, chroniclePosts = [], stats = {}, weeklyBoss = null) {
   const questDamage = quests
     .filter(q => q.completedToday)
     .reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
@@ -45,7 +45,18 @@ export function getBossDamage(quests, chroniclePosts = []) {
     .filter(post => post.date?.slice(0, 10) === today)
     .reduce((sum, post) => sum + Number(post.xp || 25), 0);
 
-  return questDamage + chronicleDamage;
+  let baseDamage = questDamage + chronicleDamage;
+
+  if (weeklyBoss && weeklyBoss.weaknessStat && stats) {
+    const dominantStat = Object.entries(stats).sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0];
+    if (dominantStat && dominantStat[0] === weeklyBoss.weaknessStat) {
+      const statValue = Number(dominantStat[1] || 0);
+      const bonusMultiplier = 1 + Math.min(statValue * 0.05, 1.5);
+      baseDamage = Math.round(baseDamage * bonusMultiplier);
+    }
+  }
+
+  return baseDamage;
 }
 
 export function getBossProgress(boss, quests, chroniclePosts = []) {

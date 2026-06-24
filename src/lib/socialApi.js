@@ -313,3 +313,83 @@ export async function acceptCodeOfConduct(userId, version) {
     .single();
   return { data, error };
 }
+
+export async function getPostComments(postId) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('post_comments')
+    .select('*, profiles(username, display_name, avatar, title, level), post_comment_likes(comment_id)')
+    .eq('post_id', postId)
+    .is('parent_id', null)
+    .order('created_at', { ascending: true });
+  return { data: data || [], error };
+}
+
+export async function getCommentReplies(parentId) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('post_comments')
+    .select('*, profiles(username, display_name, avatar, title, level), post_comment_likes(comment_id)')
+    .eq('parent_id', parentId)
+    .order('created_at', { ascending: true });
+  return { data: data || [], error };
+}
+
+export async function createComment(postId, userId, content, parentId = null) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('post_comments')
+    .insert({ post_id: postId, user_id: userId, content, parent_id: parentId })
+    .select('*, profiles(username, display_name, avatar, title, level), post_comment_likes(comment_id)')
+    .single();
+  return { data, error };
+}
+
+export async function likeComment(commentId, userId) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('post_comment_likes')
+    .upsert({ comment_id: commentId, user_id: userId }, { onConflict: 'comment_id,user_id' });
+  return { data, error };
+}
+
+export async function unlikeComment(commentId, userId) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('post_comment_likes')
+    .delete()
+    .eq('comment_id', commentId)
+    .eq('user_id', userId);
+  return { data, error };
+}
+
+export async function isCommentLiked(commentId, userId) {
+  if (!supabase) return { data: false, error: null };
+  const { data, error } = await supabase
+    .from('post_comment_likes')
+    .select('comment_id')
+    .eq('comment_id', commentId)
+    .eq('user_id', userId)
+    .single();
+  return { data: !!data, error };
+}
+
+export async function searchUsers(query, currentUserId) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, display_name, avatar, title, level')
+    .neq('id', currentUserId)
+    .ilike('username', `%${query}%`)
+    .limit(10);
+  return { data: data || [], error };
+}
+
+export async function getFriends(userId) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('connections')
+    .select('following_id, profiles!following_id(username, display_name, avatar, title, level)')
+    .eq('follower_id', userId);
+  return { data: data || [], error };
+}
