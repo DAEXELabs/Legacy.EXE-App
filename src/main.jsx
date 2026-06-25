@@ -7,15 +7,8 @@ import {
   Heart,
   Palette,
   Shield,
-  Trophy,
-  Plus,
   CheckCircle2,
-  RotateCcw,
-  Upload,
-  Download,
-  Flame,
   Skull,
-  Sparkles,
   Timer,
   MessageSquareText,
   Dumbbell,
@@ -54,7 +47,6 @@ import { SettingsTab } from './components/SettingsTab';
 import { MessagesTab } from './components/MessagesTab';
 import { AsyncQueueDisplay } from './async/AsyncQueueDisplay';
 import { advanceTrigger, readAsyncState, writeAsyncState } from './async/asyncEngine';
-import { QuestItem } from './components/QuestItem';
 import { WorkoutProofModal } from './components/WorkoutProofModal';
 import { CheckinModal } from './components/CheckinModal';
 import { TimerModal } from './components/TimerModal';
@@ -68,6 +60,10 @@ import { OnboardingScreen } from './components/OnboardingScreen';
 import { CoopBossTab } from './components/CoopBossTab';
 import { LeaderboardTab } from './components/LeaderboardTab';
 import { GuildTab } from './components/GuildTab';
+import { HomeTab } from './components/HomeTab';
+import { CompileTab } from './components/CompileTab';
+import { QuestsTab } from './components/QuestsTab';
+import { AchievementsTab } from './components/AchievementsTab';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 const QUEST_XP_MIN = 10;
@@ -1052,7 +1048,7 @@ function App() {
           <div className="topbar-right">
             <div className="hp-bar-container" title={`${state.hp || state.maxHp}/${state.maxHp} HP`}>
               <div className="hp-bar-track">
-                <div className="hp-bar-fill" style={{ width: `${Math.max(0, ((state.hp || state.maxHp) / state.maxHp) * 100}%` }} />
+                <div className="hp-bar-fill" style={{ width: `${Math.max(0, ((state.hp || state.maxHp) / state.maxHp) * 100)}%` }} />
               </div>
               <small className="hp-label">
                 <Heart size={12} /> {state.hp || state.maxHp}/{state.maxHp}
@@ -1101,189 +1097,46 @@ function App() {
         )}
 
         {tab === 'home' && (
-          <section className="screen-stack">
-            <div className="hero-card">
-              <div className={`avatar ${dominantStat}`}>{state.avatar}</div>
-              <div className="hero-copy">
-                <p className="eyebrow">
-                  {tier} • {state.title}
-                </p>
-                <h2>{state.playerName}</h2>
-                <p>Dominant path: {STAT_META[dominantStat].label}</p>
-              </div>
-            </div>
-
-            <div className="xp-card">
-              <div className="row-between">
-                <span>XP Progress</span>
-                <strong>
-                  {state.xp} / {currentLevelXp}
-                </strong>
-              </div>
-              <small>Lifetime XP: {state.lifetimeXp || 0}</small>
-              <div className="progress-track">
-                <div className="progress-fill" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-
-            <div className="form-card">
-              <p className="eyebrow">Data Safety</p>
-              <h3>Backup Your Save</h3>
-              <p>
-                Legacy.EXE currently saves progress in this browser. Export your save before clearing cache,
-                switching devices, or testing major updates.
-              </p>
-
-              <div className="form-grid">
-                <button type="button" className="ghost" onClick={exportSaveData}>
-                  <Download size={16} /> Export Save
-                </button>
-
-                <label className="ghost import-label">
-                  <Upload size={16} /> Import Save
-                  <input
-                    type="file"
-                    accept="application/json"
-                    onChange={importSaveData}
-                    hidden
-                  />
-                </label>
-              </div>
-
-              {backupMessage && <div className="chronicle-reward">{backupMessage}</div>}
-            </div>
-
-<div className={`boss-card ${bossPulse ? 'shake-active' : ''}`}>
-               <div className="row-between">
-                 <div>
-                   <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
-                   <h3>{weeklyBoss.name}</h3>
-                   <p className="boss-meta">
-                     {weeklyBoss.archetype} • Domain: {weeklyBoss.domain}
-                   </p>
-                 </div>
-                 <span className="boss-mini-icon">{weeklyBoss.icon}</span>
-               </div>
-               <p>{weeklyBoss.description}</p>
-               <p>{driftMessage}</p>
-               <div className="progress-track">
-                 <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
-               </div>
-               <small>
-                 {bossDamage} damage dealt • {bossHpRemaining}/{weeklyBoss.hp} HP remaining • {streakMultiplier}x streak
-               </small>
-             </div>
-
-<div className="quest-list">
-               <div className="row-between">
-                 <h3>Today&apos;s Quests</h3>
-                 <button className="ghost" onClick={resetDay}>
-                   <RotateCcw size={16} /> Reset day
-                 </button>
-               </div>
-
-               <DailyQuestGenerator
-                 archetype={state.archetype}
-                 onQuestGenerated={(newQuest) =>
-                   setState(prev => ({
-                     ...prev,
-                     quests: [...prev.quests, newQuest],
-                   }))
-                 }
-               />
-
-               {state.quests
-                .slice(0, 4)
-.map(q => (
-                    <QuestItem
-                      key={q.id}
-                      quest={q}
-                      onComplete={requestQuestCompletion}
-                      STAT_META={STAT_META}
-                      PROOF_META={PROOF_META}
-                      pulseActive={questPulseId === q.id}
-                    />
-                  ))}
-                </div>
-              </section>
+          <HomeTab
+            state={state}
+            dominantStat={dominantStat}
+            tier={tier}
+            STAT_META={STAT_META}
+            currentLevelXp={currentLevelXp}
+            progress={progress}
+            exportSaveData={exportSaveData}
+            importSaveData={importSaveData}
+            backupMessage={backupMessage}
+            weeklyBoss={weeklyBoss}
+            driftMessage={driftMessage}
+            bossProgress={bossProgress}
+            bossPulse={bossPulse}
+            bossDamage={bossDamage}
+            bossHpRemaining={bossHpRemaining}
+            streakMultiplier={streakMultiplier}
+            resetDay={resetDay}
+            requestQuestCompletion={requestQuestCompletion}
+            PROOF_META={PROOF_META}
+          />
         )}
 
         {tab === 'compile' && (
-          <section className="screen-stack">
-            <div className="boss-card">
-              <p className="eyebrow">Daily Compile</p>
-              <h2>What did today prove?</h2>
-              <p>
-                You are not just checking boxes. You are compiling evidence of who you are becoming.
-              </p>
-
-              <div className="progress-track">
-                <div className="progress-fill boss" style={{ width: `${bossProgress}%` }} />
-              </div>
-
-              <small>{driftMessage}</small>
-            </div>
-
-            <div className="stats-grid">
-              <div className="stat-card">
-                <CheckCircle2 size={20} />
-                <span>Quests Complete</span>
-                <strong>
-                  {completedToday}/{state.quests.length}
-                </strong>
-              </div>
-
-              <div className="stat-card">
-                <Sparkles size={20} />
-                <span>XP Earned Today</span>
-                <strong>{dailyXpEarned}</strong>
-              </div>
-
-              <div className="stat-card">
-                <Flame size={20} />
-                <span>Streak Multiplier</span>
-                <strong>{streakMultiplier}x</strong>
-              </div>
-
-              <div className="stat-card">
-                <Shield size={20} />
-                <span>Strongest Stat</span>
-                <strong>{STAT_META[strongestStat[0]].label}</strong>
-              </div>
-
-              <div className="stat-card">
-                <span>{weeklyBoss.icon}</span>
-                <span>Weekly Boss</span>
-                <strong>{weeklyBoss.name}</strong>
-              </div>
-            </div>
-
-            <form className="form-card" onSubmit={saveDailyReflection}>
-              <h3>Reflection</h3>
-              <p>Before you close the day, write one honest sentence.</p>
-
-              {savedReflection && (
-                <div className="reward unlocked">
-                  <MessageSquareText />
-                  <div>
-                    <strong>Saved Reflection</strong>
-                    <p>{savedReflection}</p>
-                  </div>
-                  <span>Today</span>
-                </div>
-              )}
-
-              <textarea
-                value={dailyReflection}
-                onChange={e => setDailyReflection(e.target.value)}
-                placeholder="Today proved that I..."
-              />
-
-              <button className="primary" disabled={dailyReflection.trim().length < 5}>
-                Save Daily Compile
-              </button>
-            </form>
-          </section>
+          <CompileTab
+            bossProgress={bossProgress}
+            driftMessage={driftMessage}
+            completedToday={completedToday}
+            state={state}
+            dailyXpEarned={dailyXpEarned}
+            streakMultiplier={streakMultiplier}
+            STAT_META={STAT_META}
+            strongestStat={strongestStat}
+            weeklyBoss={weeklyBoss}
+            saveDailyReflection={saveDailyReflection}
+            savedReflection={savedReflection}
+            dailyReflection={dailyReflection}
+            setDailyReflection={setDailyReflection}
+            bossPulse={bossPulse}
+          />
         )}
 
         {tab === 'reading' && (
@@ -1358,261 +1211,31 @@ function App() {
         )}
 
         {tab === 'quests' && (
-          <section className="screen-stack">
-            <form className="form-card" onSubmit={addQuest}>
-              <h3>Create Quest</h3>
-              <p>Choose a difficulty preset. XP is assigned automatically and capped at {QUEST_XP_MAX}.</p>
-
-              <input
-                value={newQuest.title}
-                onChange={e => setNewQuest({ ...newQuest, title: e.target.value })}
-                placeholder="Example: Workout"
-              />
-
-              <div className="form-grid">
-                <select
-                  value={newQuest.stat}
-                  onChange={e => setNewQuest({ ...newQuest, stat: e.target.value })}
-                >
-                  {Object.entries(STAT_META).map(([key, meta]) => (
-                    <option key={key} value={key}>
-                      {meta.label}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={newQuest.difficulty}
-                  onChange={e => {
-                    const difficulty = e.target.value;
-                    setNewQuest({
-                      ...newQuest,
-                      difficulty,
-                      xp: getDifficultyXp(difficulty),
-                    });
-                  }}
-                >
-                  {Object.entries(QUEST_DIFFICULTY_PRESETS).map(([key, preset]) => (
-                    <option key={key} value={key}>
-                      {preset.label} - {preset.xp} XP
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-grid">
-                <input
-                  value={newQuest.frequency}
-                  onChange={e =>
-                    setNewQuest({ ...newQuest, frequency: e.target.value })
-                  }
-                  placeholder="daily, weekly, 3x weekly"
-                />
-
-                <select
-                  value={newQuest.proof}
-                  onChange={e => setNewQuest({ ...newQuest, proof: e.target.value })}
-                >
-                  {Object.entries(PROOF_META).map(([key, meta]) => (
-                    <option key={key} value={key}>
-                      {meta.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button className="primary">
-                <Plus size={18} /> Add Quest
-              </button>
-            </form>
-
-            {Object.entries(STAT_META).map(([statKey, meta]) => {
-              const StatIcon = meta.icon;
-              const statQuests = state.quests.filter(q => q.stat === statKey);
-
-              if (statQuests.length === 0) return null;
-
-              return (
-                <div className="quest-list" key={statKey}>
-                  <div className="row-between">
-                    <h3>
-                      <StatIcon size={18} /> {meta.label}
-                    </h3>
-                    <span className="proof-badge">
-                      {statQuests.filter(q => q.completedToday).length}/{statQuests.length}
-                    </span>
-                  </div>
-
-{statQuests.map(q => (
-                      <div className="quest-edit-shell" key={q.id}>
-                        <div className="quest-manage-row">
-                          <QuestItem
-                            quest={q}
-                            onComplete={requestQuestCompletion}
-                            STAT_META={STAT_META}
-                            PROOF_META={PROOF_META}
-                            pulseActive={questPulseId === q.id}
-                          />
-
-                        <div className="quest-manage-actions">
-                          <button
-                            type="button"
-                            className="ghost"
-                            onClick={() => startEditingQuest(q)}
-                          >
-                            Edit
-                          </button>
-
-                          <button
-                            type="button"
-                            className="ghost danger"
-                            onClick={() => deleteQuest(q.id)}
-                            title="Delete quest"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-
-                      {editingQuestId === q.id && (
-                        <form className="form-card quest-edit-form" onSubmit={saveEditingQuest}>
-                          <input
-                            value={editingQuest.title}
-                            onChange={e => setEditingQuest({ ...editingQuest, title: e.target.value })}
-                            placeholder="Quest title"
-                          />
-
-                          <div className="form-grid">
-                            <select
-                              value={editingQuest.stat}
-                              onChange={e => setEditingQuest({ ...editingQuest, stat: e.target.value })}
-                            >
-                              {Object.entries(STAT_META).map(([key, meta]) => (
-                                <option key={key} value={key}>
-                                  {meta.label}
-                                </option>
-                              ))}
-                            </select>
-
-                            <select
-                              value={editingQuest.difficulty}
-                              onChange={e => {
-                                const difficulty = e.target.value;
-                                setEditingQuest({
-                                  ...editingQuest,
-                                  difficulty,
-                                  xp: getDifficultyXp(difficulty),
-                                });
-                              }}
-                            >
-                              {Object.entries(QUEST_DIFFICULTY_PRESETS).map(([key, preset]) => (
-                                <option key={key} value={key}>
-                                  {preset.label} - {preset.xp} XP
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="form-grid">
-                            <input
-                              value={editingQuest.frequency}
-                              onChange={e => setEditingQuest({ ...editingQuest, frequency: e.target.value })}
-                              placeholder="daily, weekly, 3x weekly"
-                            />
-
-                            <select
-                              value={editingQuest.proof}
-                              onChange={e => setEditingQuest({ ...editingQuest, proof: e.target.value })}
-                            >
-                              {Object.entries(PROOF_META).map(([key, meta]) => (
-                                <option key={key} value={key}>
-                                  {meta.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="quest-edit-actions">
-                            <button className="primary" type="submit">Save Quest</button>
-                            <button className="ghost" type="button" onClick={cancelEditingQuest}>Cancel</button>
-                          </div>
-
-                          <small>Difficulty controls XP automatically to keep progression fair.</small>
-                        </form>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-          </section>
+          <QuestsTab
+            addQuest={addQuest}
+            newQuest={newQuest}
+            setNewQuest={setNewQuest}
+            STAT_META={STAT_META}
+            PROOF_META={PROOF_META}
+            state={state}
+            requestQuestCompletion={requestQuestCompletion}
+            deleteQuest={deleteQuest}
+            editingQuestId={editingQuestId}
+            editingQuest={editingQuest}
+            setEditingQuest={setEditingQuest}
+            cancelEditingQuest={cancelEditingQuest}
+            saveEditingQuest={saveEditingQuest}
+            QUEST_DIFFICULTY_PRESETS={QUEST_DIFFICULTY_PRESETS}
+            QUEST_XP_MIN={QUEST_XP_MIN}
+            QUEST_XP_MAX={QUEST_XP_MAX}
+          />
         )}
 
         {tab === 'achievements' && (
-          <section className="screen-stack">
-            <div className="boss-card">
-              <p className="eyebrow">Milestones / Achievements</p>
-              <h2>Proof becomes legacy.</h2>
-              <p>
-                Unlock achievements by training, reading, defeating bosses, building streaks, and showing proof.
-              </p>
-            </div>
-
-            <div className="stats-grid">
-              <div className="stat-card">
-                <Trophy size={20} />
-                <span>Unlocked</span>
-                <strong>{(state.achievements || []).length}/{ACHIEVEMENTS.length}</strong>
-              </div>
-
-              <div className="stat-card">
-                <Sparkles size={20} />
-                <span>Achievement XP</span>
-                <strong>
-                  {(state.achievements || []).reduce((sum, item) => sum + Number(item.xp || 0), 0)}
-                </strong>
-              </div>
-
-              <div className="stat-card">
-                <Flame size={20} />
-                <span>Current Title</span>
-                <strong>{state.title}</strong>
-              </div>
-
-              <div className="stat-card">
-                <Coins size={20} />
-                <span>Lifetime XP</span>
-                <strong>{state.lifetimeXp || 0}</strong>
-              </div>
-            </div>
-
-            <div className="quest-list">
-              <h3>Achievement Path</h3>
-
-              {ACHIEVEMENTS.map(achievement => {
-                const unlocked = (state.achievements || []).find(item => item.id === achievement.id);
-
-                return (
-                  <div
-                    className={`reward ${unlocked ? 'unlocked' : ''}`}
-                    key={achievement.id}
-                  >
-                    <Trophy />
-                    <div>
-                      <strong>{achievement.name}</strong>
-                      <p>{achievement.description}</p>
-                      {unlocked && (
-                        <p>
-                          Unlocked {new Date(unlocked.unlockedAt).toLocaleDateString()} • Title: {achievement.title}
-                        </p>
-                      )}
-                    </div>
-                    <span>{unlocked ? `+${achievement.xp} XP` : 'Locked'}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+          <AchievementsTab
+            state={state}
+            achievements={ACHIEVEMENTS}
+          />
         )}
 
 {tab === 'character' && (

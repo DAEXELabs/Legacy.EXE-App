@@ -1,4 +1,4 @@
-import { CheckCircle2, Flame, MessageSquareText, Shield, Sparkles } from 'lucide-react';
+import { CheckCircle2, Flame, Shield, Sparkles } from 'lucide-react';
 
 export function CompileTab({
   bossProgress,
@@ -14,10 +14,11 @@ export function CompileTab({
   savedReflection,
   dailyReflection,
   setDailyReflection,
+  bossPulse,
 }) {
   return (
     <section className="screen-stack">
-      <div className="boss-card">
+      <div className={`boss-card ${bossPulse ? 'shake-active' : ''}`}>
         <p className="eyebrow">Daily Compile</p>
         <h2>What did today prove?</h2>
         <p>You are not just checking boxes. You are compiling evidence of who you are becoming.</p>
@@ -67,7 +68,7 @@ export function CompileTab({
 
         {savedReflection && (
           <div className="reward unlocked">
-            <MessageSquareText />
+            <span className="inline-icon">💬</span>
             <div>
               <strong>Saved Reflection</strong>
               <p>{savedReflection}</p>

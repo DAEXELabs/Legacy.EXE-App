@@ -14,6 +14,7 @@ export function HomeTab({
   weeklyBoss,
   driftMessage,
   bossProgress,
+  bossPulse,
   bossDamage,
   bossHpRemaining,
   streakMultiplier,
@@ -73,7 +74,7 @@ export function HomeTab({
         {backupMessage && <div className="chronicle-reward">{backupMessage}</div>}
       </div>
 
-      <div className="boss-card">
+      <div className={`boss-card ${bossPulse ? 'shake-active' : ''}`}>
         <div className="row-between">
           <div>
             <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
