@@ -8,6 +8,8 @@ export const starterState = {
   streak: 0,
   lastCompletedDate: null,
   onboarded: false,
+  hp: 100,
+  maxHp: 100,
   workoutLogs: [],
   dailyReflections: {},
   chroniclePosts: [],

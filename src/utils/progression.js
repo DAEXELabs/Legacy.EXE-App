@@ -92,3 +92,39 @@ export function applyXpProgress(prev, xpAmount) {
 
   return { nextXp, nextLevel, rewards, nextLifetimeXp };
 }
+
+export function checkWeeklyBossReset(state, weeklyBoss) {
+  const currentWeek = weeklyBoss.week;
+  const stateWeek = state.currentBossWeek || state.lastBossWeek;
+  
+  if (stateWeek !== currentWeek) {
+    const bossNotDefeated = !isBossDefeated(state, weeklyBoss);
+    const penaltyDamage = bossNotDefeated ? weeklyBoss.hp * 0.25 : 0;
+    const streakPenalty = bossNotDefeated ? Math.min(state.streak, 7) : 0;
+    
+    const newHp = Math.max(0, (state.hp || state.maxHp) - Math.round(penaltyDamage));
+    
+    return {
+      needWeeklyReset: true,
+      newHp,
+      streakPenalty: bossNotDefeated ? streakPenalty : 0,
+      bossDefeated: !bossNotDefeated,
+    };
+  }
+  
+  return { needWeeklyReset: false, newHp: state.hp, streakPenalty: 0, bossDefeated: true };
+}
+
+export function isBossDefeated(state, weeklyBoss) {
+  const bossArchive = state.bossArchive || [];
+  return bossArchive.some(
+    entry => entry.name === weeklyBoss.name && entry.week === weeklyBoss.week
+  );
+}
+
+export function calculateHpRegen(quests, stats) {
+  const completedHealthQuests = (quests || []).filter(q => q.completedToday && q.stat === 'health').length;
+  const healthStat = stats?.health || 0;
+  const regenPerQuest = 3 + Math.floor(healthStat / 5);
+  return completedHealthQuests * regenPerQuest;
+}

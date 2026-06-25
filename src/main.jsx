@@ -33,6 +33,8 @@ import {
   applyXpProgress,
   getBossDamage,
   getBossProgress,
+  checkWeeklyBossReset,
+  calculateHpRegen,
 } from './utils/progression';
 import {
   calculateEffortScore,
@@ -251,8 +253,12 @@ function App() {
   const [levelPulse, setLevelPulse] = useState(false);
   const [bossPulse, setBossPulse] = useState(false);
   const [questPulseId, setQuestPulseId] = useState(null);
+  const [damageToast, setDamageToast] = useState(null);
+  const [hpRegenToast, setHpRegenToast] = useState(null);
   const prevStateRef = useRef(null);
   const prevBossDamageRef = useRef(0);
+  const prevWeeklyBossWeek = useRef(0);
+  const cloudSyncInProgressRef = useRef(false);
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem('legacy-exe-settings-v1');
     return saved ? JSON.parse(saved) : {
@@ -291,6 +297,41 @@ function App() {
   useEffect(() => {
     writeAsyncState(asyncState);
   }, [asyncState]);
+
+  useEffect(() => {
+    if (!state.currentBossWeek) return;
+    
+    const reset = checkWeeklyBossReset(state, weeklyBoss);
+    if (reset.needWeeklyReset) {
+      setState(prev => ({
+        ...prev,
+        currentBossWeek: weeklyBoss.week,
+        hp: reset.newHp,
+        streak: reset.bossDefeated ? prev.streak : 0,
+      }));
+      
+      if (reset.streakPenalty > 0 || reset.newHp < (prev.hp || prev.maxHp)) {
+        setDamageToast({
+          hp: reset.newHp,
+          streakLost: reset.streakPenalty,
+          bossNotDefeated: !reset.bossDefeated,
+        });
+        setTimeout(() => setDamageToast(null), 4000);
+      }
+    }
+  }, [weeklyBoss.week, state.currentBossWeek]);
+
+  useEffect(() => {
+    if (!state.onboarded || !state.hp) return;
+    
+    const hpRegen = calculateHpRegen(state.quests, state.stats);
+    if (hpRegen > 0 && state.hp < state.maxHp) {
+      const newHp = Math.min(state.maxHp, state.hp + hpRegen);
+      setState(prev => ({ ...prev, hp: newHp }));
+      setHpRegenToast(hpRegen);
+      setTimeout(() => setHpRegenToast(null), 3000);
+    }
+  }, [state.quests, state.hp, state.onboarded]);
 
   const weeklyBoss = getWeeklyBoss();
   const currentLevelXp = xpForLevel(state.level);
@@ -1008,10 +1049,31 @@ function App() {
             <p className="eyebrow">LEGACY.EXE</p>
             <h1>Execute your legacy.</h1>
           </div>
-          <div className={`level-pill ${levelPulse ? 'glow-active' : ''}`}>LVL {state.level}</div>
+          <div className="topbar-right">
+            <div className="hp-bar-container" title={`${state.hp || state.maxHp}/${state.maxHp} HP`}>
+              <div className="hp-bar-track">
+                <div className="hp-bar-fill" style={{ width: `${Math.max(0, ((state.hp || state.maxHp) / state.maxHp) * 100}%` }} />
+              </div>
+              <small className="hp-label">
+                <Heart size={12} /> {state.hp || state.maxHp}/{state.maxHp}
+              </small>
+            </div>
+            <div className={`level-pill ${levelPulse ? 'glow-active' : ''}`}>LVL {state.level}</div>
+          </div>
         </header>
 
         {xpToast && <div className="xp-toast">+{xpToast} XP</div>}
+        {damageToast && (
+          <div className="damage-toast">
+            <Skull size={16} /> -{damageToast.hp > 0 ? Math.round(damageToast.streakLost * 10) : (state.maxHp - state.hp)} HP
+            {damageToast.streakLost > 0 && ` • Streak: -${damageToast.streakLost}`}
+          </div>
+        )}
+        {hpRegenToast && (
+          <div className="hp-regen-toast">
+            <Heart size={16} /> +{hpRegenToast} HP Regen
+          </div>
+        )}
 
         <nav className="tabs">
           {['home', 'quests', 'compile', 'reading', 'chronicle', 'social', 'async', 'achievements', 'character', 'boss', 'co-op', 'leaderboard', 'guild', 'settings', 'messages'].map(item => (
