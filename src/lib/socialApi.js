@@ -393,3 +393,260 @@ export async function getFriends(userId) {
     .eq('follower_id', userId);
   return { data: data || [], error };
 }
+
+// ===== GUILDS / LEGACY HOUSES =====
+
+export async function createGuild({ name, tag, description, icon, ownerId, minLevel = 1, maxMembers = 20, isPublic = true }) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guilds')
+    .insert({ name, tag, description, icon, owner_id: ownerId, min_level: minLevel, max_members: maxMembers, is_public: isPublic })
+    .select()
+    .single();
+  if (!error && data) {
+    await supabase.from('guild_members').insert({ guild_id: data.id, user_id: ownerId, role: 'owner' });
+  }
+  return { data, error };
+}
+
+export async function getPublicGuilds() {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guilds')
+    .select('*, profiles!guilds_owner_id_fkey(username, display_name, avatar, title, level)')
+    .eq('is_public', true)
+    .order('created_at', { ascending: false });
+  return { data: data || [], error };
+}
+
+export async function getMyGuilds(userId) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_members')
+    .select('*, guilds(*, profiles!guilds_owner_id_fkey(username, display_name, avatar, title, level))')
+    .eq('user_id', userId)
+    .order('joined_at', { ascending: false });
+  return { data: data || [], error };
+}
+
+export async function getGuildMembers(guildId) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_members')
+    .select('*, profiles(username, display_name, avatar, title, level)')
+    .eq('guild_id', guildId)
+    .order('role', { ascending: false })
+    .order('joined_at', { ascending: true });
+  return { data: data || [], error };
+}
+
+export async function joinGuild(guildId, userId) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_members')
+    .insert({ guild_id: guildId, user_id: userId, role: 'member' })
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function leaveGuild(guildId, userId) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { error } = await supabase
+    .from('guild_members')
+    .delete()
+    .eq('guild_id', guildId)
+    .eq('user_id', userId);
+  return { data: { success: !error }, error };
+}
+
+export async function updateGuildMemberRole(guildId, userId, newRole) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_members')
+    .update({ role: newRole })
+    .eq('guild_id', guildId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function inviteToGuild(guildId, inviterId, inviteeId) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_invites')
+    .insert({ guild_id: guildId, inviter_id: inviterId, invitee_id: inviteeId })
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function getGuildInvites(userId) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_invites')
+    .select('*, guilds(*, profiles!guilds_owner_id_fkey(username, display_name, avatar, title, level)), profiles!guild_invites_inviter_id_fkey(username, display_name, avatar)')
+    .eq('invitee_id', userId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  return { data: data || [], error };
+}
+
+export async function respondToInvite(inviteId, status) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_invites')
+    .update({ status })
+    .eq('id', inviteId)
+    .select()
+    .single();
+  return { data, error };
+}
+
+// ===== GUILD CHAT =====
+
+export async function getGuildMessages(guildId, limit = 50) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_chat_messages')
+    .select('*, profiles(username, display_name, avatar, title, level)')
+    .eq('guild_id', guildId)
+    .eq('moderation_status', 'approved')
+    .order('created_at', { ascending: true })
+    .limit(limit);
+  return { data: data || [], error };
+}
+
+export async function sendGuildMessage(guildId, senderId, body) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_chat_messages')
+    .insert({ guild_id: guildId, sender_id: senderId, body })
+    .select('*, profiles(username, display_name, avatar, title, level)')
+    .single();
+  return { data, error };
+}
+
+export async function deleteGuildMessage(messageId, userId) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_chat_messages')
+    .delete()
+    .eq('id', messageId)
+    .eq('sender_id', userId);
+  return { data: { success: !error }, error };
+}
+
+// ===== GUILD ACHIEVEMENTS =====
+
+export async function getGuildAchievements(guildId) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_achievements')
+    .select('*')
+    .eq('guild_id', guildId)
+    .order('created_at', { ascending: false });
+  return { data: data || [], error };
+}
+
+export async function unlockGuildAchievement(achievementId) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_achievements')
+    .update({ unlocked_at: new Date().toISOString() })
+    .eq('id', achievementId)
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function createGuildAchievement(guildId, achievement) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('guild_achievements')
+    .insert({ guild_id: guildId, ...achievement })
+    .select()
+    .single();
+  return { data, error };
+}
+
+// ===== CO-OP BOSS =====
+
+export async function recordBossContribution({ bossWeek, bossName, userId, damageDealt, source }) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('boss_party_contributions')
+    .insert({ boss_week: bossWeek, boss_name: bossName, user_id: userId, damage_dealt: damageDealt, contribution_source: source })
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function getBossPartyContributions(bossName, bossWeek) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('boss_party_contributions')
+    .select('*, profiles(username, display_name, avatar, title, level)')
+    .eq('boss_name', bossName)
+    .eq('boss_week', bossWeek)
+    .order('damage_dealt', { ascending: false });
+  return { data: data || [], error };
+}
+
+export async function getMyBossContribution(bossName, bossWeek, userId) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('boss_party_contributions')
+    .select('*')
+    .eq('boss_name', bossName)
+    .eq('boss_week', bossWeek)
+    .eq('user_id', userId)
+    .single();
+  return { data, error };
+}
+
+// ===== LEADERBOARD =====
+
+export async function getWeeklyLeaderboard(week) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('weekly_leaderboard')
+    .select('*, profiles(username, display_name, avatar, title, level)')
+    .eq('week', week)
+    .order('rank', { ascending: true })
+    .limit(100);
+  return { data: data || [], error };
+}
+
+export async function getOverallLegacyLeaderboard(limit = 100) {
+  if (!supabase) return { data: [], error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, display_name, avatar, title, level, lifetime_xp')
+    .order('lifetime_xp', { ascending: false })
+    .limit(limit);
+  return { data: data || [], error };
+}
+
+export async function updateWeeklyLeaderboard({ week, userId, totalXp, questsCompleted, bossDamage }) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('weekly_leaderboard')
+    .upsert({ week, user_id: userId, total_xp: totalXp, quests_completed: questsCompleted, boss_damage: bossDamage, updated_at: new Date().toISOString() }, { onConflict: 'week,user_id' })
+    .select()
+    .single();
+  return { data, error };
+}
+
+// ===== MODERATION =====
+
+export async function reportGuildMessage({ reporterId, messageId, guildId, reason, details }) {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const { data, error } = await supabase
+    .from('user_reports')
+    .insert({ reporter_id: reporterId, reported_user_id: null, post_id: null, message_id: messageId, reason: `guild:${guildId}|${reason}`, details })
+    .select()
+    .single();
+  return { data, error };
+}

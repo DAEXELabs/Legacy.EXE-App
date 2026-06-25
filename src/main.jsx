@@ -63,6 +63,9 @@ import DailyQuestGenerator from './components/DailyQuestGenerator';
 import CharacterProfile from './components/CharacterProfile';
 import AvatarUploader from './components/AvatarUploader';
 import { OnboardingScreen } from './components/OnboardingScreen';
+import { CoopBossTab } from './components/CoopBossTab';
+import { LeaderboardTab } from './components/LeaderboardTab';
+import { GuildTab } from './components/GuildTab';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 const QUEST_XP_MIN = 10;
@@ -148,6 +151,7 @@ function App() {
     signOut,
   } = useCloudSync();
 
+  const currentUserId = session?.user?.id;
   const handleLocalContinue = () => setLocalMode(true);
 
   const [state, setState] = useState(() => {
@@ -1010,7 +1014,7 @@ function App() {
         {xpToast && <div className="xp-toast">+{xpToast} XP</div>}
 
         <nav className="tabs">
-          {['home', 'quests', 'compile', 'reading', 'chronicle', 'social', 'async', 'achievements', 'character', 'boss', 'settings', 'messages'].map(item => (
+          {['home', 'quests', 'compile', 'reading', 'chronicle', 'social', 'async', 'achievements', 'character', 'boss', 'co-op', 'leaderboard', 'guild', 'settings', 'messages'].map(item => (
             <button
               key={item}
               onClick={() => { playClick(); setTab(item); }}
@@ -1587,6 +1591,38 @@ function App() {
             resetApp={resetApp}
             bossPulse={bossPulse}
             dominantStat={dominantStat}
+          />
+        )}
+
+        {tab === 'co-op' && currentUserId && (
+          <CoopBossTab
+            session={session}
+            currentUserId={currentUserId}
+            state={state}
+            weeklyBoss={weeklyBoss}
+            bossDamage={bossDamage}
+            bossHpRemaining={bossHpRemaining}
+            bossProgress={bossProgress}
+            baseBossDamage={baseBossDamage}
+            streakMultiplier={streakMultiplier}
+            archiveBossVictory={archiveBossVictory}
+            isBossArchived={isBossArchived}
+            bossDefeated={bossDefeated}
+          />
+        )}
+
+        {tab === 'leaderboard' && (
+          <LeaderboardTab
+            session={session}
+            currentUserId={currentUserId}
+          />
+        )}
+
+        {tab === 'guild' && currentUserId && (
+          <GuildTab
+            session={session}
+            currentUserId={currentUserId}
+            state={state}
           />
         )}
 
