@@ -59,6 +59,15 @@ create table if not exists guild_members (
   primary key (guild_id, user_id)
 );
 
+-- Guild Chat Messages (referenced by socialApi guild-chat functions)
+create table if not exists guild_chat_messages (
+  id uuid primary key default uuid_generate_v4(),
+  guild_id uuid references guilds(id) on delete cascade,
+  sender_id uuid references profiles(id) on delete cascade,
+  body text not null,
+  created_at timestamptz default now()
+);
+
 -- Boss Contributions
 create table if not exists boss_contributions (
   id uuid primary key default uuid_generate_v4(),
@@ -79,17 +88,20 @@ create table if not exists weekly_leaderboard (
   unique (week, user_id)
 );
 
--- RLS (Basic Secure Policies)
-alter table chronicle_posts enable row level security;
--- Add policies for read/insert own, etc. (expand as needed)
+-- ============================================================
+-- Direct Messaging
+-- ============================================================
+
 create table if not exists direct_threads (
   id uuid primary key default uuid_generate_v4(),
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 create table if not exists direct_thread_members (
   thread_id uuid references direct_threads(id) on delete cascade,
   user_id uuid references profiles(id) on delete cascade,
+  read_at timestamptz,
   primary key (thread_id, user_id)
 );
 
@@ -101,19 +113,112 @@ create table if not exists direct_messages (
   created_at timestamptz default now()
 );
 
--- RLS for messages
+create index if not exists direct_messages_thread_created_idx
+  on direct_messages (thread_id, created_at);
+
+create index if not exists direct_thread_members_user_idx
+  on direct_thread_members (user_id);
+
+-- ============================================================
+-- RLS: Chronicle
+-- ============================================================
+alter table chronicle_posts enable row level security;
+
+create policy "Chronicle: view all" on chronicle_posts
+  for select using (true);
+
+create policy "Chronicle: insert own" on chronicle_posts
+  for insert with check (auth.uid() = user_id);
+
+create policy "Chronicle: update own" on chronicle_posts
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "Chronicle: delete own" on chronicle_posts
+  for delete using (auth.uid() = user_id);
+
+-- ============================================================
+-- RLS: Guilds
+-- ============================================================
+alter table guilds enable row level security;
+alter table guild_members enable row level security;
+alter table guild_chat_messages enable row level security;
+
+create policy "Guilds: view all" on guilds for select using (true);
+create policy "Guilds: insert" on guilds for insert with check (auth.uid() = owner_id);
+create policy "Guilds: update owner" on guilds for update using (auth.uid() = owner_id);
+create policy "Guilds: delete owner" on guilds for delete using (auth.uid() = owner_id);
+
+create policy "Guild members: view" on guild_members for select using (true);
+create policy "Guild members: self add" on guild_members for insert with check (auth.uid() = user_id);
+create policy "Guild members: self remove" on guild_members for delete using (auth.uid() = user_id);
+
+create policy "Guild chat: view" on guild_chat_messages for select using (
+  exists (select 1 from guild_members where guild_id = guild_chat_messages.guild_id and user_id = auth.uid())
+);
+create policy "Guild chat: insert" on guild_chat_messages
+  for insert with check (
+    sender_id = auth.uid()
+    and exists (select 1 from guild_members where guild_id = guild_chat_messages.guild_id and user_id = auth.uid())
+  );
+create policy "Guild chat: delete own" on guild_chat_messages
+  for delete using (sender_id = auth.uid());
+
+-- ============================================================
+-- RLS: Direct Messages
+-- ============================================================
 alter table direct_threads enable row level security;
 alter table direct_thread_members enable row level security;
 alter table direct_messages enable row level security;
 
--- Basic RLS policies (expand as needed)
-create policy "Users can view their threads" on direct_threads
+-- Threads: visible to members
+create policy "DM threads: view own" on direct_threads
   for select using (
-    exists (select 1 from direct_thread_members where thread_id = id and user_id = auth.uid())
+    exists (select 1 from direct_thread_members where thread_id = direct_threads.id and user_id = auth.uid())
   );
 
-create policy "Users can view their thread members" on direct_thread_members
-  for select using (user_id = auth.uid());
+-- Threads: no direct insert via RLS (created via find-or-create in app)
+create policy "DM threads: insert" on direct_threads
+  for insert with check (true);
 
-create policy "Users can insert their messages" on direct_messages
-  for insert with check (sender_id = auth.uid());
+-- Thread members: visible to members of the thread
+create policy "DM members: view thread" on direct_thread_members
+  for select using (
+    user_id = auth.uid()
+    or exists (
+      select 1 from direct_thread_members dtm
+      where dtm.thread_id = direct_thread_members.thread_id
+      and dtm.user_id = auth.uid()
+    )
+  );
+
+-- Thread members: self join or self leave
+create policy "DM members: insert self" on direct_thread_members
+  for insert with check (user_id = auth.uid());
+
+create policy "DM members: delete self" on direct_thread_members
+  for delete using (user_id = auth.uid());
+
+-- Messages: visible to thread members
+create policy "DM messages: view" on direct_messages
+  for select using (
+    exists (
+      select 1 from direct_thread_members
+      where thread_id = direct_messages.thread_id
+      and user_id = auth.uid()
+    )
+  );
+
+-- Messages: sender can insert
+create policy "DM messages: insert own" on direct_messages
+  for insert with check (
+    sender_id = auth.uid()
+    and exists (
+      select 1 from direct_thread_members
+      where thread_id = direct_messages.thread_id
+      and user_id = auth.uid()
+    )
+  );
+
+-- Messages: no update (immutable); sender can delete own
+create policy "DM messages: delete own" on direct_messages
+  for delete using (sender_id = auth.uid());
