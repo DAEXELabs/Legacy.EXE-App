@@ -20,8 +20,11 @@ create table if not exists chronicle_posts (
   user_id uuid references profiles(id) on delete cascade,
   caption text,
   image_url text,
+  media_urls text[] default '{}',
+  media_types text[] default '{}',
   archetype text,
   likes integer default 0,
+  visibility text default 'public',
   created_at timestamptz default now()
 );
 
@@ -65,6 +68,8 @@ create table if not exists guild_chat_messages (
   guild_id uuid references guilds(id) on delete cascade,
   sender_id uuid references profiles(id) on delete cascade,
   body text not null,
+  media_urls text[] default '{}',
+  media_types text[] default '{}',
   created_at timestamptz default now()
 );
 
@@ -222,3 +227,13 @@ create policy "DM messages: insert own" on direct_messages
 -- Messages: no update (immutable); sender can delete own
 create policy "DM messages: delete own" on direct_messages
   for delete using (sender_id = auth.uid());
+
+-- ============================================================
+-- STORAGE BUCKETS (run in SQL editor or via migrations)
+-- ============================================================
+-- Note: storage.buckets requires the storage extension and is
+-- usually created through Supabase dashboard / migration. Included
+-- here for completeness.
+-- insert into storage.buckets (id, name, public)
+-- values ('media', 'media', true)
+-- on conflict (id) do nothing;

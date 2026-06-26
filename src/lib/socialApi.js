@@ -40,11 +40,16 @@ export async function getUserChroniclePosts(userId) {
   return { data: data || [], error };
 }
 
-export async function createChroniclePost(post) {
+export async function createChroniclePost(post, mediaAttachments = []) {
   if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const insertPayload = { ...post };
+  if (mediaAttachments.length > 0) {
+    insertPayload.media_urls = mediaAttachments.map(m => m.url);
+    insertPayload.media_types = mediaAttachments.map(m => m.type);
+  }
   const { data, error } = await supabase
     .from('chronicle_posts')
-    .insert(post)
+    .insert(insertPayload)
     .select()
     .single();
   return { data, error };
@@ -512,17 +517,21 @@ export async function getGuildMessages(guildId, limit = 50) {
     .from('guild_chat_messages')
     .select('*, profiles(username, display_name, avatar, title, level)')
     .eq('guild_id', guildId)
-    .eq('moderation_status', 'approved')
     .order('created_at', { ascending: true })
     .limit(limit);
   return { data: data || [], error };
 }
 
-export async function sendGuildMessage(guildId, senderId, body) {
+export async function sendGuildMessage(guildId, senderId, body, mediaAttachments = []) {
   if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const insertPayload = { guild_id: guildId, sender_id: senderId, body };
+  if (mediaAttachments.length > 0) {
+    insertPayload.media_urls = mediaAttachments.map(m => m.url);
+    insertPayload.media_types = mediaAttachments.map(m => m.type);
+  }
   const { data, error } = await supabase
     .from('guild_chat_messages')
-    .insert({ guild_id: guildId, sender_id: senderId, body })
+    .insert(insertPayload)
     .select('*, profiles(username, display_name, avatar, title, level)')
     .single();
   return { data, error };

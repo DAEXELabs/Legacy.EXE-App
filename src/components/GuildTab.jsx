@@ -20,6 +20,7 @@ import {
   createGuildAchievement,
   searchUsers,
 } from '../lib/socialApi';
+import { MediaUploader } from './MediaUploader';
 
 export function GuildTab({ session, currentUserId, state }) {
   const [view, setView] = useState('discover');
@@ -29,6 +30,8 @@ export function GuildTab({ session, currentUserId, state }) {
   const [guildMembers, setGuildMembers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
+  const [pendingMedia, setPendingMedia] = useState([]);
+  const [submittingMessage, setSubmittingMessage] = useState(false);
   const [guildAchievements, setGuildAchievements] = useState([]);
   const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -155,11 +158,17 @@ export function GuildTab({ session, currentUserId, state }) {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!messageInput.trim() || !selectedGuild?.id || !currentUserId) return;
+    if ((!messageInput.trim() && pendingMedia.length === 0) || !selectedGuild?.id || !currentUserId) return;
     const clean = messageInput.trim().replace(/[<>&]/g, m => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[m]);
-    const { error } = await sendGuildMessage(selectedGuild.id, currentUserId, clean);
-    if (!error) {
-      setMessageInput('');
+    setSubmittingMessage(true);
+    try {
+      const { error } = await sendGuildMessage(selectedGuild.id, currentUserId, clean, pendingMedia);
+      if (!error) {
+        setMessageInput('');
+        setPendingMedia([]);
+      }
+    } finally {
+      setSubmittingMessage(false);
     }
   };
 
@@ -516,7 +525,7 @@ export function GuildTab({ session, currentUserId, state }) {
             </div>
           )}
 
-          {(view === 'detail' || view === 'chat') && (
+          {view === 'detail' && (
             <div className="guild-chat-container">
               <div className="guild-messages">
                 {messages.length === 0 ? (
@@ -530,7 +539,18 @@ export function GuildTab({ session, currentUserId, state }) {
                         {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className="guild-message-body">{msg.body}</p>
+                    {msg.body && <p className="guild-message-body">{msg.body}</p>}
+                    {msg.media_urls && msg.media_urls.length > 0 && (
+                      <div className={`guild-media-grid guild-media-count-${Math.min(msg.media_urls.length, 4)}`}>
+                        {msg.media_urls.slice(0, 4).map((url, i) => {
+                          const mt = msg.media_types?.[i];
+                          if (mt === 'video') {
+                            return <video key={i} className="guild-media-item" src={url} controls muted loop playsInline />;
+                          }
+                          return <img key={i} className="guild-media-item" src={url} alt="media" />;
+                        })}
+                      </div>
+                    )}
                     {msg.sender_id === currentUserId && (
                       <button className="ghost small guild-delete-msg" onClick={() => deleteGuildMessage(msg.id, currentUserId)}>
                         <X size={12} />
@@ -540,15 +560,23 @@ export function GuildTab({ session, currentUserId, state }) {
                 ))}
               </div>
               <form className="guild-chat-input" onSubmit={handleSendMessage}>
-                <input
-                  value={messageInput}
-                  onChange={e => setMessageInput(e.target.value)}
-                  placeholder="Send a message..."
-                  maxLength={500}
+                <MediaUploader
+                  userId={currentUserId}
+                  onUploadComplete={setPendingMedia}
+                  maxFiles={2}
+                  compact
                 />
-                <button type="submit" className="primary" disabled={!messageInput.trim()}>
-                  <Send size={16} />
-                </button>
+                <div className="guild-chat-input-row">
+                  <input
+                    value={messageInput}
+                    onChange={e => setMessageInput(e.target.value)}
+                    placeholder="Send a message..."
+                    maxLength={500}
+                  />
+                  <button type="submit" className="primary" disabled={submittingMessage || (!messageInput.trim() && pendingMedia.length === 0)}>
+                    <Send size={16} />
+                  </button>
+                </div>
               </form>
             </div>
           )}

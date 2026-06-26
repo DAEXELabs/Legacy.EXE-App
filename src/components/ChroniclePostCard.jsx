@@ -38,6 +38,22 @@ export function ChroniclePostCard({
         <img className="feed-image" src={post.image_url} alt={post.type} />
       )}
 
+      {post.media_urls && post.media_urls.length > 0 && (
+        <div className={`media-grid media-count-${Math.min(post.media_urls.length, 4)}`}>
+          {post.media_urls.slice(0, 4).map((url, i) => {
+            const mt = post.media_types?.[i];
+            if (mt === 'video') {
+              return (
+                <video key={i} className="media-grid-item" src={url} controls muted loop playsInline />
+              );
+            }
+            return (
+              <img key={i} className="media-grid-item" src={url} alt={`${post.type} ${i + 1}`} />
+            );
+          })}
+        </div>
+      )}
+
       <div className="feed-meta">
         <span>{time}</span>
         <span>• +{post.xp || 25} XP</span>

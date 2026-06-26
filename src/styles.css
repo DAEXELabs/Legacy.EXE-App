@@ -1046,14 +1046,208 @@ textarea { min-height: 96px; resize: vertical; }
     gap: 8px;
   }
 
-  .search-results {
-    display: grid;
-    gap: 8px;
-    max-height: 200px;
-    overflow-y: auto;
-    margin-top: 10px;
-    padding: 8px;
-    border-radius: 14px;
-    background: rgba(0,0,0,.18);
-    border: 1px solid rgba(255,255,255,.08);
-  }
+   .search-results {
+     display: grid;
+     gap: 8px;
+     max-height: 200px;
+     overflow-y: auto;
+     margin-top: 10px;
+     padding: 8px;
+     border-radius: 14px;
+     background: rgba(0,0,0,.18);
+     border: 1px solid rgba(255,255,255,.08);
+   }
+
+   /* ===== MEDIA UPLOAD ===== */
+   .media-uploader {
+     display: grid;
+     gap: 10px;
+     padding: 10px;
+     border-radius: 16px;
+     background: rgba(141, 108, 255, 0.06);
+     border: 1px dashed rgba(141, 108, 255, 0.25);
+   }
+
+   .media-uploader.compact {
+     padding: 8px;
+     gap: 8px;
+   }
+
+   .media-uploader-input {
+     display: flex;
+     align-items: center;
+     gap: 10px;
+     flex-wrap: wrap;
+   }
+
+   .media-uploader-hint {
+     color: #7f8caf;
+     font-size: 0.72rem;
+     display: inline-flex;
+     align-items: center;
+     gap: 4px;
+   }
+
+   .media-uploader .upload-label {
+     margin: 0;
+   }
+
+   .media-preview-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+     gap: 8px;
+   }
+
+   .media-preview-item {
+     position: relative;
+     aspect-ratio: 1;
+     border-radius: 12px;
+     overflow: hidden;
+     border: 1px solid rgba(255,255,255,.1);
+     background: rgba(0,0,0,.3);
+   }
+
+   .media-preview-item img,
+   .media-preview-item video {
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+   }
+
+   .media-uploading-overlay {
+     position: absolute;
+     inset: 0;
+     display: grid;
+     place-items: center;
+     background: rgba(0,0,0,.5);
+   }
+
+   .media-spinner {
+     width: 20px;
+     height: 20px;
+     border: 2px solid rgba(255,255,255,.2);
+     border-top-color: #f6c65b;
+     border-radius: 50%;
+     animation: xp-toast-fade 0.8s linear infinite;
+   }
+
+   .media-remove-btn {
+     position: absolute;
+     top: 4px;
+     right: 4px;
+     width: 22px;
+     height: 22px;
+     border: 0;
+     border-radius: 50%;
+     background: rgba(0,0,0,.7);
+     color: #ffb1b1;
+     cursor: pointer;
+     display: grid;
+     place-items: center;
+     border: 1px solid rgba(255,91,91,.4);
+   }
+
+   .media-remove-btn:hover {
+     background: rgba(255,91,91,.3);
+   }
+
+   /* Media grid for posts */
+   .media-grid {
+     display: grid;
+     gap: 6px;
+     border-radius: 18px;
+     overflow: hidden;
+   }
+
+   .media-grid.media-count-1 {
+     grid-template-columns: 1fr;
+   }
+
+   .media-grid.media-count-2 {
+     grid-template-columns: 1fr 1fr;
+   }
+
+   .media-grid.media-count-3 {
+     grid-template-columns: 1fr 1fr;
+   }
+
+   .media-grid.media-count-3 .media-grid-item:first-child {
+     grid-row: span 2;
+   }
+
+   .media-grid.media-count-4 {
+     grid-template-columns: 1fr 1fr;
+   }
+
+   .media-grid-item {
+     width: 100%;
+     aspect-ratio: 1;
+     object-fit: cover;
+     border-radius: 12px;
+     border: 1px solid rgba(255,255,255,.1);
+     background: rgba(0,0,0,.25);
+   }
+
+   .media-grid-item video {
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+   }
+
+   /* Guild chat media */
+   .guild-chat-input {
+     display: grid;
+     gap: 8px;
+   }
+
+   .guild-chat-input-row {
+     display: flex;
+     gap: 10px;
+   }
+
+   .guild-chat-input-row input {
+     flex: 1;
+   }
+
+   .guild-media-grid {
+     display: grid;
+     gap: 4px;
+     margin-top: 6px;
+   }
+
+   .guild-media-count-1 {
+     grid-template-columns: 1fr;
+     max-width: 240px;
+   }
+
+   .guild-media-count-2 {
+     grid-template-columns: 1fr 1fr;
+   }
+
+   .guild-media-count-3 {
+     grid-template-columns: 1fr 1fr;
+   }
+
+   .guild-media-count-3 .guild-media-item:first-child {
+     grid-row: span 2;
+   }
+
+   .guild-media-count-4 {
+     grid-template-columns: 1fr 1fr;
+   }
+
+   .guild-media-item {
+     width: 100%;
+     max-height: 180px;
+     object-fit: cover;
+     border-radius: 10px;
+     border: 1px solid rgba(255,255,255,.1);
+     background: rgba(0,0,0,.25);
+   }
+
+   .guild-media-item video {
+     width: 100%;
+     height: 100%;
+     max-height: 180px;
+     object-fit: cover;
+   }

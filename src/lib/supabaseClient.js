@@ -9,6 +9,13 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
+export const MEDIA_MAX_SIZE = 10 * 1024 * 1024;
+export const MEDIA_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
+
+export function isMediaConfigured() {
+  return isSupabaseConfigured;
+}
+
 export async function uploadAvatar(userId, file) {
   if (!supabase) return { data: null, error: new Error('Cloud not available') };
 
@@ -52,4 +59,33 @@ export async function uploadAvatar(userId, file) {
 
   const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
   return { data: { path: data.path, url: publicUrl }, error: null };
+}
+
+export async function uploadMedia(userId, file, bucket = 'media') {
+  if (!supabase) return { data: null, error: new Error('Cloud not available') };
+
+  if (file.size > MEDIA_MAX_SIZE) {
+    return { data: null, error: new Error(`File too large. Max ${MEDIA_MAX_SIZE / 1024 / 1024}MB.`) };
+  }
+
+  if (!MEDIA_ALLOWED_TYPES.includes(file.type)) {
+    return { data: null, error: new Error('Unsupported file type. Use images (jpg/png/gif/webp) or videos (mp4/webm/mov).') };
+  }
+
+  const isVideo = file.type.startsWith('video/');
+  const ext = file.type.split('/')[1] === 'quicktime' ? 'mov' : file.type.split('/')[1];
+  const prefix = isVideo ? 'videos' : 'images';
+  const path = `${prefix}/${userId}/${crypto.randomUUID()}.${ext}`;
+
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(path, file, { contentType: file.type });
+
+  if (error) return { data: null, error };
+
+  const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
+  return {
+    data: { path: data.path, url: publicUrl, type: isVideo ? 'video' : 'image', mimeType: file.type },
+    error: null,
+  };
 }
