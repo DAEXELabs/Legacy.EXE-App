@@ -295,29 +295,6 @@ function App() {
   }, [asyncState]);
 
   useEffect(() => {
-    if (!state.currentBossWeek) return;
-    
-    const reset = checkWeeklyBossReset(state, weeklyBoss);
-    if (reset.needWeeklyReset) {
-      setState(prev => ({
-        ...prev,
-        currentBossWeek: weeklyBoss.week,
-        hp: reset.newHp,
-        streak: reset.bossDefeated ? prev.streak : 0,
-      }));
-      
-      if (reset.streakPenalty > 0 || reset.newHp < (prev.hp || prev.maxHp)) {
-        setDamageToast({
-          hp: reset.newHp,
-          streakLost: reset.streakPenalty,
-          bossNotDefeated: !reset.bossDefeated,
-        });
-        setTimeout(() => setDamageToast(null), 4000);
-      }
-    }
-  }, [weeklyBoss.week, state.currentBossWeek]);
-
-  useEffect(() => {
     if (!state.onboarded || !state.hp) return;
     
     const hpRegen = calculateHpRegen(state.quests, state.stats);
@@ -346,6 +323,29 @@ function App() {
   const dailyXpEarned = state.quests.filter(q => q.completedToday).reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
   const strongestStat = Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0];
   const readingGoal = state.readingGoal || starterState.readingGoal;
+
+  useEffect(() => {
+    if (!state.currentBossWeek) return;
+    
+    const reset = checkWeeklyBossReset(state, weeklyBoss);
+    if (reset.needWeeklyReset) {
+      setState(prev => ({
+        ...prev,
+        currentBossWeek: weeklyBoss.week,
+        hp: reset.newHp,
+        streak: reset.bossDefeated ? prev.streak : 0,
+      }));
+      
+      if (reset.streakPenalty > 0 || reset.newHp < (prev.hp || prev.maxHp)) {
+        setDamageToast({
+          hp: reset.newHp,
+          streakLost: reset.streakPenalty,
+          bossNotDefeated: !reset.bossDefeated,
+        });
+        setTimeout(() => setDamageToast(null), 4000);
+      }
+    }
+  }, [weeklyBoss.week, state.currentBossWeek]);
 
   useEffect(() => {
     if (prevStateRef.current) {
