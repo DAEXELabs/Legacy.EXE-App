@@ -82,3 +82,38 @@ create table if not exists weekly_leaderboard (
 -- RLS (Basic Secure Policies)
 alter table chronicle_posts enable row level security;
 -- Add policies for read/insert own, etc. (expand as needed)
+create table if not exists direct_threads (
+  id uuid primary key default uuid_generate_v4(),
+  created_at timestamptz default now()
+);
+
+create table if not exists direct_thread_members (
+  thread_id uuid references direct_threads(id) on delete cascade,
+  user_id uuid references profiles(id) on delete cascade,
+  primary key (thread_id, user_id)
+);
+
+create table if not exists direct_messages (
+  id uuid primary key default uuid_generate_v4(),
+  thread_id uuid references direct_threads(id) on delete cascade,
+  sender_id uuid references profiles(id) on delete cascade,
+  body text not null,
+  created_at timestamptz default now()
+);
+
+-- RLS for messages
+alter table direct_threads enable row level security;
+alter table direct_thread_members enable row level security;
+alter table direct_messages enable row level security;
+
+-- Basic RLS policies (expand as needed)
+create policy "Users can view their threads" on direct_threads
+  for select using (
+    exists (select 1 from direct_thread_members where thread_id = id and user_id = auth.uid())
+  );
+
+create policy "Users can view their thread members" on direct_thread_members
+  for select using (user_id = auth.uid());
+
+create policy "Users can insert their messages" on direct_messages
+  for insert with check (sender_id = auth.uid());
