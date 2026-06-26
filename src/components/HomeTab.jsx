@@ -1,5 +1,6 @@
 import { Download, RotateCcw, Upload } from 'lucide-react';
 import { QuestItem } from './QuestItem';
+import { HelpTooltip } from './TutorialHelp';
 
 export function HomeTab({
   state,
@@ -74,11 +75,15 @@ export function HomeTab({
         {backupMessage && <div className="chronicle-reward">{backupMessage}</div>}
       </div>
 
-      <div className={`boss-card ${bossPulse ? 'shake-active' : ''}`}>
-        <div className="row-between">
-          <div>
-            <p className="eyebrow">Week {weeklyBoss.week} Boss</p>
-            <h3>{weeklyBoss.name}</h3>
+       <div className={`boss-card ${bossPulse ? 'shake-active' : ''}`}>
+         <div className="row-between">
+           <div>
+             <p className="eyebrow">
+               <HelpTooltip content="Each week a new boss attacks your progress. Complete quests to deal damage." id="home-boss-label">
+                 Week {weeklyBoss.week} Boss
+               </HelpTooltip>
+             </p>
+             <h3>{weeklyBoss.name}</h3>
             <p className="boss-meta">
               {weeklyBoss.archetype} • Domain: {weeklyBoss.domain}
             </p>
@@ -95,9 +100,13 @@ export function HomeTab({
         </small>
       </div>
 
-      <div className="quest-list">
-        <div className="row-between">
-          <h3>Today&apos;s Quests</h3>
+       <div className="quest-list">
+         <div className="row-between">
+           <h3>
+             <HelpTooltip content="Quests are your core action loop. Complete them to earn XP and deal boss damage." id="home-quest-label">
+               Today&apos;s Quests
+             </HelpTooltip>
+           </h3>
           <button className="ghost" onClick={resetDay}>
             <RotateCcw size={16} /> Reset day
           </button>

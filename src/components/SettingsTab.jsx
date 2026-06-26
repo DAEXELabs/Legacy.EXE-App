@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { LogOut, Download, Upload, Volume2, VolumeX, Zap } from 'lucide-react';
 import { deleteUserAppData } from '../lib/socialApi';
+import { TutorialSettings } from '../components/TutorialHelp';
 
 export function SettingsTab({
   session,
@@ -49,6 +50,8 @@ export function SettingsTab({
         <h2>Control Panel</h2>
         <p>Manage your account, preferences, and data.</p>
       </div>
+
+      <TutorialSettings />
 
       <div className="form-card settings-section">
         <h3>Account</h3>

@@ -64,6 +64,7 @@ import { HomeTab } from './components/HomeTab';
 import { CompileTab } from './components/CompileTab';
 import { QuestsTab } from './components/QuestsTab';
 import { AchievementsTab } from './components/AchievementsTab';
+import { TutorialProvider, HelpButton, TutorialSettings } from './components/TutorialHelp';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 const QUEST_XP_MIN = 10;
@@ -1084,6 +1085,7 @@ function App() {
         </nav>
 
         <div className="user-menu-slot">
+          <HelpButton />
           <UserMenu
             session={session}
             onSignOut={signOut}
@@ -1364,4 +1366,8 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(
+  <TutorialProvider>
+    <App />
+  </TutorialProvider>
+);
