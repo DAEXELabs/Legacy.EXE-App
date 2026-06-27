@@ -156,29 +156,31 @@ export function ChronicleTab({
 
                <p>{post.caption}</p>
 
-               {post.imageUrl && (
-                 <img
-                   className="chronicle-image"
-                   src={post.imageUrl}
-                   alt={post.type}
-                 />
-               )}
+{post.imageUrl && (
+                  <img
+                    className="chronicle-image"
+                    src={post.imageUrl}
+                    alt={post.type}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
 
-               {post.media_urls && post.media_urls.length > 0 && (
-                 <div className={`media-grid media-count-${Math.min(post.media_urls.length, 4)}`}>
-                   {post.media_urls.slice(0, 4).map((url, i) => {
-                     const mt = post.media_types?.[i];
-                     if (mt === 'video') {
-                       return (
-                         <video key={i} className="media-grid-item" src={url} controls muted loop playsInline />
-                       );
-                     }
-                     return (
-                       <img key={i} className="media-grid-item" src={url} alt={`${post.type} ${i + 1}`} />
-                     );
-                   })}
-                 </div>
-               )}
+                {post.media_urls && post.media_urls.length > 0 && (
+                  <div className={`media-grid media-count-${Math.min(post.media_urls.length, 4)}`}>
+                    {post.media_urls.slice(0, 4).map((url, i) => {
+                      const mt = post.media_types?.[i];
+                      if (mt === 'video') {
+                        return (
+                          <video key={i} className="media-grid-item" src={url} controls muted loop playsInline loading="lazy" />
+                        );
+                      }
+                      return (
+                        <img key={i} className="media-grid-item" src={url} alt={`${post.type} ${i + 1}`} loading="lazy" decoding="async" />
+                      );
+                    })}
+                  </div>
+                )}
 
                <div className="chronicle-reward">
                  <Sparkles size={14} /> +{post.xp} XP Recorded

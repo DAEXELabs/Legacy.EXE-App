@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef, useCallback, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Activity,
@@ -38,33 +38,13 @@ import { starterState } from './data/starterState';
 import { AuthScreen } from './components/AuthScreen';
 import { UserMenu } from './components/UserMenu';
 import { FriendList } from './components/FriendList';
-import { SocialFeedTab } from './components/SocialFeedTab';
-import { ChronicleTab } from './components/ChronicleTab';
-import { ReadingTab } from './components/ReadingTab';
-import { BossTab } from './components/BossTab';
-import { CharacterTab } from './components/CharacterTab';
-import { SettingsTab } from './components/SettingsTab';
-import { MessagesTab } from './components/MessagesTab';
-import { AsyncQueueDisplay } from './async/AsyncQueueDisplay';
-import { advanceTrigger, readAsyncState, writeAsyncState } from './async/asyncEngine';
+import { TutorialProvider, HelpButton } from './components/TutorialHelp';
+import { OnboardingScreen } from './components/OnboardingScreen';
 import { WorkoutProofModal } from './components/WorkoutProofModal';
 import { CheckinModal } from './components/CheckinModal';
 import { TimerModal } from './components/TimerModal';
 import { useCloudSync } from './hooks/useCloudSync';
-import ArchetypeSelector from './components/ArchetypeSelector';
-import SkillTree from './components/SkillTree';
-import DailyQuestGenerator from './components/DailyQuestGenerator';
-import CharacterProfile from './components/CharacterProfile';
-import AvatarUploader from './components/AvatarUploader';
-import { OnboardingScreen } from './components/OnboardingScreen';
-import { CoopBossTab } from './components/CoopBossTab';
-import { LeaderboardTab } from './components/LeaderboardTab';
-import { GuildTab } from './components/GuildTab';
-import { HomeTab } from './components/HomeTab';
-import { CompileTab } from './components/CompileTab';
-import { QuestsTab } from './components/QuestsTab';
-import { AchievementsTab } from './components/AchievementsTab';
-import { TutorialProvider, HelpButton, TutorialSettings } from './components/TutorialHelp';
+import { advanceTrigger, readAsyncState, writeAsyncState } from './async/asyncEngine';
 
 const STORAGE_KEY = 'legacy-exe-state-v2';
 const QUEST_XP_MIN = 10;
@@ -137,6 +117,26 @@ function unlockAchievements(prev, candidates = []) {
     bonusXp: earned.reduce((sum, item) => sum + Number(item.xp || 0), 0),
     latestTitle: earned[0]?.title || prev.title,
   };
+}
+
+const HomeTab = lazy(() => import('./components/HomeTab.jsx').then(m => ({ default: React.memo(m.HomeTab) })));
+const CompileTab = lazy(() => import('./components/CompileTab.jsx').then(m => ({ default: React.memo(m.CompileTab) })));
+const ReadingTab = lazy(() => import('./components/ReadingTab.jsx').then(m => ({ default: React.memo(m.ReadingTab) })));
+const ChronicleTab = lazy(() => import('./components/ChronicleTab.jsx').then(m => ({ default: React.memo(m.ChronicleTab) })));
+const SocialFeedTab = lazy(() => import('./components/SocialFeedTab.jsx').then(m => ({ default: React.memo(m.SocialFeedTab) })));
+const AsyncQueueDisplay = lazy(() => import('./async/AsyncQueueDisplay.jsx').then(m => ({ default: React.memo(m.AsyncQueueDisplay) })));
+const QuestsTab = lazy(() => import('./components/QuestsTab.jsx').then(m => ({ default: React.memo(m.QuestsTab) })));
+const AchievementsTab = lazy(() => import('./components/AchievementsTab.jsx').then(m => ({ default: React.memo(m.AchievementsTab) })));
+const CharacterTab = lazy(() => import('./components/CharacterTab.jsx').then(m => ({ default: React.memo(m.CharacterTab) })));
+const BossTab = lazy(() => import('./components/BossTab.jsx').then(m => ({ default: React.memo(m.BossTab) })));
+const CoopBossTab = lazy(() => import('./components/CoopBossTab.jsx').then(m => ({ default: React.memo(m.CoopBossTab) })));
+const LeaderboardTab = lazy(() => import('./components/LeaderboardTab.jsx').then(m => ({ default: React.memo(m.LeaderboardTab) })));
+const GuildTab = lazy(() => import('./components/GuildTab.jsx').then(m => ({ default: React.memo(m.GuildTab) })));
+const SettingsTab = lazy(() => import('./components/SettingsTab.jsx').then(m => ({ default: React.memo(m.SettingsTab) })));
+const MessagesTab = lazy(() => import('./components/MessagesTab.jsx').then(m => ({ default: React.memo(m.MessagesTab) })));
+
+function LoadingFallback() {
+  return <div className="empty-state"><p>Loading...</p></div>;
 }
 
 function App() {
@@ -236,8 +236,8 @@ function App() {
     notes: '',
   });
 
-  const workoutRegimen = getWorkoutTier(state.level);
-  const workoutTotals = getRegimenTotals(workoutRegimen);
+  const workoutRegimen = useMemo(() => getWorkoutTier(state.level), [state.level]);
+  const workoutTotals = useMemo(() => getRegimenTotals(workoutRegimen), [workoutRegimen]);
 
   const [profileDraft, setProfileDraft] = useState({
     playerName: '',
@@ -307,23 +307,53 @@ function App() {
     }
   }, [state.quests, state.hp, state.onboarded]);
 
-  const weeklyBoss = getWeeklyBoss();
-  const currentLevelXp = xpForLevel(state.level);
-  const progress = Math.min(100, Math.round((state.xp / currentLevelXp) * 100));
-  const baseBossDamage = getBossDamage(state.quests, state.chroniclePosts || [], state.stats, weeklyBoss);
-  const streakMultiplier = getStreakMultiplier(state.streak);
-  const bossDamage = Math.round(baseBossDamage * streakMultiplier);
-  const bossProgress = Math.min(100, Math.round((bossDamage / weeklyBoss.hp) * 100));
-  const bossHpRemaining = Math.max(0, weeklyBoss.hp - bossDamage);
-  const bossDefeated = bossProgress >= 100;
-  const isBossArchived = (state.bossArchive || []).some(
-    entry => entry.name === weeklyBoss.name && entry.week === weeklyBoss.week
+  const weeklyBoss = useMemo(() => getWeeklyBoss(), []);
+  const currentLevelXp = useMemo(() => xpForLevel(state.level), [state.level]);
+  const progress = useMemo(
+    () => Math.min(100, Math.round((state.xp / currentLevelXp) * 100)),
+    [state.xp, currentLevelXp]
   );
-  const tier = computeTier(state.level);
-  const completedToday = state.quests.filter(q => q.completedToday).length;
-  const dailyXpEarned = state.quests.filter(q => q.completedToday).reduce((sum, quest) => sum + Number(quest.xp || 0), 0);
-  const strongestStat = Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0];
-  const readingGoal = state.readingGoal || starterState.readingGoal;
+  const baseBossDamage = useMemo(
+    () => getBossDamage(state.quests, state.chroniclePosts || [], state.stats, weeklyBoss),
+    [state.quests, state.chroniclePosts, state.stats, weeklyBoss]
+  );
+  const streakMultiplier = useMemo(() => getStreakMultiplier(state.streak), [state.streak]);
+  const bossDamage = useMemo(
+    () => Math.round(baseBossDamage * streakMultiplier),
+    [baseBossDamage, streakMultiplier]
+  );
+  const bossProgress = useMemo(
+    () => Math.min(100, Math.round((bossDamage / weeklyBoss.hp) * 100)),
+    [bossDamage, weeklyBoss.hp]
+  );
+  const bossHpRemaining = useMemo(
+    () => Math.max(0, weeklyBoss.hp - bossDamage),
+    [weeklyBoss.hp, bossDamage]
+  );
+  const bossDefeated = useMemo(() => bossProgress >= 100, [bossProgress]);
+  const isBossArchived = useMemo(
+    () => (state.bossArchive || []).some(
+      entry => entry.name === weeklyBoss.name && entry.week === weeklyBoss.week
+    ),
+    [state.bossArchive, weeklyBoss.name, weeklyBoss.week]
+  );
+  const tier = useMemo(() => computeTier(state.level), [state.level]);
+  const completedToday = useMemo(
+    () => state.quests.filter(q => q.completedToday).length,
+    [state.quests]
+  );
+  const dailyXpEarned = useMemo(
+    () => state.quests.filter(q => q.completedToday).reduce((sum, quest) => sum + Number(quest.xp || 0), 0),
+    [state.quests]
+  );
+  const strongestStat = useMemo(
+    () => Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0],
+    [state.stats]
+  );
+  const readingGoal = useMemo(
+    () => state.readingGoal || starterState.readingGoal,
+    [state.readingGoal]
+  );
 
   useEffect(() => {
     if (!state.currentBossWeek) return;
@@ -398,22 +428,31 @@ function App() {
     return () => clearTimeout(timeout);
   }, [timerQuest, timerDone]);
 
-  const booksProgress = Math.min(
-    100,
-    Math.round((Number(readingGoal.booksCompleted || 0) / Math.max(Number(readingGoal.monthlyBooksTarget || 1), 1)) * 100)
+  const booksProgress = useMemo(
+    () => Math.min(
+      100,
+      Math.round((Number(readingGoal.booksCompleted || 0) / Math.max(Number(readingGoal.monthlyBooksTarget || 1), 1)) * 100)
+    ),
+    [readingGoal.booksCompleted, readingGoal.monthlyBooksTarget]
   );
-  const chaptersProgress = Math.min(
-    100,
-    Math.round((Number(readingGoal.chaptersCompleted || 0) / Math.max(Number(readingGoal.monthlyChaptersTarget || 1), 1)) * 100)
+  const chaptersProgress = useMemo(
+    () => Math.min(
+      100,
+      Math.round((Number(readingGoal.chaptersCompleted || 0) / Math.max(Number(readingGoal.monthlyChaptersTarget || 1), 1)) * 100)
+    ),
+    [readingGoal.chaptersCompleted, readingGoal.monthlyChaptersTarget]
   );
-  const readingXpEarned = (readingGoal.readingLogs || []).reduce(
-    (sum, log) => sum + Number(log.xp || 0),
-    0
+  const readingXpEarned = useMemo(
+    () => (readingGoal.readingLogs || []).reduce((sum, log) => sum + Number(log.xp || 0), 0),
+    [readingGoal.readingLogs]
   );
-  const savedReflection = state.dailyReflections?.[todayKey()] || '';
+  const savedReflection = useMemo(
+    () => state.dailyReflections?.[todayKey()] || '',
+    [state.dailyReflections]
+  );
 
-  const driftMessage =
-    bossProgress >= 100
+  const driftMessage = useMemo(
+    () => bossProgress >= 100
       ? weeklyBoss.victory
       : bossProgress >= 75
         ? 'Victory is close. Finish the compile.'
@@ -421,7 +460,9 @@ function App() {
           ? `${weeklyBoss.name} is weakening.`
           : bossProgress >= 25
             ? 'Momentum is forming.'
-            : `${weeklyBoss.name} is still feeding.`;
+            : `${weeklyBoss.name} is still feeding.`,
+    [bossProgress, weeklyBoss.victory, weeklyBoss.name]
+  );
 
   const dominantStat = useMemo(() => {
     return Object.entries(state.stats).sort((a, b) => b[1] - a[1])[0][0];
@@ -899,7 +940,7 @@ function App() {
     });
   }
 
-  function cancelEditingQuest() {
+  const cancelEditingQuest = useCallback(() => {
     setEditingQuestId(null);
     setEditingQuest({
       title: '',
@@ -909,7 +950,7 @@ function App() {
       frequency: 'daily',
       proof: 'honor',
     });
-  }
+  }, []);
 
   function saveEditingQuest(e) {
     e.preventDefault();
@@ -937,12 +978,12 @@ function App() {
     cancelEditingQuest();
   }
 
-  function resetDay() {
+  const resetDay = useCallback(() => {
     setState(prev => ({
       ...prev,
       quests: prev.quests.map(q => ({ ...q, completedToday: false })),
     }));
-  }
+  }, []);
 
   function exportSaveData() {
     const payload = {
@@ -1011,10 +1052,10 @@ function App() {
     event.target.value = '';
   }
 
-  function resetApp() {
+  const resetApp = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setState(starterState);
-  }
+  }, []);
 
   if (!authLoading && !session && !localMode) {
     return (
@@ -1099,74 +1140,82 @@ function App() {
         )}
 
         {tab === 'home' && (
-          <HomeTab
-            state={state}
-            dominantStat={dominantStat}
-            tier={tier}
-            STAT_META={STAT_META}
-            currentLevelXp={currentLevelXp}
-            progress={progress}
-            exportSaveData={exportSaveData}
-            importSaveData={importSaveData}
-            backupMessage={backupMessage}
-            weeklyBoss={weeklyBoss}
-            driftMessage={driftMessage}
-            bossProgress={bossProgress}
-            bossPulse={bossPulse}
-            bossDamage={bossDamage}
-            bossHpRemaining={bossHpRemaining}
-            streakMultiplier={streakMultiplier}
-            resetDay={resetDay}
-            requestQuestCompletion={requestQuestCompletion}
-            PROOF_META={PROOF_META}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <HomeTab
+              state={state}
+              dominantStat={dominantStat}
+              tier={tier}
+              STAT_META={STAT_META}
+              currentLevelXp={currentLevelXp}
+              progress={progress}
+              exportSaveData={exportSaveData}
+              importSaveData={importSaveData}
+              backupMessage={backupMessage}
+              weeklyBoss={weeklyBoss}
+              driftMessage={driftMessage}
+              bossProgress={bossProgress}
+              bossPulse={bossPulse}
+              bossDamage={bossDamage}
+              bossHpRemaining={bossHpRemaining}
+              streakMultiplier={streakMultiplier}
+              resetDay={resetDay}
+              requestQuestCompletion={requestQuestCompletion}
+              PROOF_META={PROOF_META}
+            />
+          </Suspense>
         )}
 
         {tab === 'compile' && (
-          <CompileTab
-            bossProgress={bossProgress}
-            driftMessage={driftMessage}
-            completedToday={completedToday}
-            state={state}
-            dailyXpEarned={dailyXpEarned}
-            streakMultiplier={streakMultiplier}
-            STAT_META={STAT_META}
-            strongestStat={strongestStat}
-            weeklyBoss={weeklyBoss}
-            saveDailyReflection={saveDailyReflection}
-            savedReflection={savedReflection}
-            dailyReflection={dailyReflection}
-            setDailyReflection={setDailyReflection}
-            bossPulse={bossPulse}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <CompileTab
+              bossProgress={bossProgress}
+              driftMessage={driftMessage}
+              completedToday={completedToday}
+              state={state}
+              dailyXpEarned={dailyXpEarned}
+              streakMultiplier={streakMultiplier}
+              STAT_META={STAT_META}
+              strongestStat={strongestStat}
+              weeklyBoss={weeklyBoss}
+              saveDailyReflection={saveDailyReflection}
+              savedReflection={savedReflection}
+              dailyReflection={dailyReflection}
+              setDailyReflection={setDailyReflection}
+              bossPulse={bossPulse}
+            />
+          </Suspense>
         )}
 
         {tab === 'reading' && (
-          <ReadingTab
-            readingGoal={readingGoal}
-            readingDraft={readingDraft}
-            setReadingDraft={setReadingDraft}
-            logReadingProgress={logReadingProgress}
-            booksProgress={booksProgress}
-            chaptersProgress={chaptersProgress}
-            readingXpEarned={readingXpEarned}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <ReadingTab
+              readingGoal={readingGoal}
+              readingDraft={readingDraft}
+              setReadingDraft={setReadingDraft}
+              logReadingProgress={logReadingProgress}
+              booksProgress={booksProgress}
+              chaptersProgress={chaptersProgress}
+              readingXpEarned={readingXpEarned}
+            />
+          </Suspense>
         )}
 
         {tab === 'chronicle' && (
-          <ChronicleTab
-            chronicleDraft={chronicleDraft}
-            setChronicleDraft={setChronicleDraft}
-            chroniclePosts={state.chroniclePosts || []}
-            playerName={state.playerName}
-            chronicleTypes={CHRONICLE_TYPES}
-            addChroniclePost={addChroniclePost}
-            encourageChroniclePost={encourageChroniclePost}
-            toggleChronicleVisibility={toggleChronicleVisibility}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <ChronicleTab
+              chronicleDraft={chronicleDraft}
+              setChronicleDraft={setChronicleDraft}
+              chroniclePosts={state.chroniclePosts || []}
+              playerName={state.playerName}
+              chronicleTypes={CHRONICLE_TYPES}
+              addChroniclePost={addChroniclePost}
+              encourageChroniclePost={encourageChroniclePost}
+              toggleChronicleVisibility={toggleChronicleVisibility}
+            />
+          </Suspense>
         )}
 
-{tab === 'social' && (
+        {tab === 'social' && (
            <section className="screen-stack">
              <div className="tabs social-sub-tabs">
                <button
@@ -1184,155 +1233,179 @@ function App() {
                  Friends
                </button>
              </div>
- 
+
              {socialSubTab === 'feed' && (
-               <SocialFeedTab
-                 session={session}
-                 currentUserId={session?.user?.id}
-                 cloudAvailable={cloudAvailable}
-               />
+               <Suspense fallback={<LoadingFallback />}>
+                 <SocialFeedTab
+                   session={session}
+                   currentUserId={session?.user?.id}
+                   cloudAvailable={cloudAvailable}
+                 />
+               </Suspense>
              )}
              {socialSubTab === 'friends' && (
-               <FriendList
-                 session={session}
-                 currentUserId={session?.user?.id}
-                 cloudAvailable={cloudAvailable}
-               />
+               <Suspense fallback={<LoadingFallback />}>
+                 <FriendList
+                   session={session}
+                   currentUserId={session?.user?.id}
+                   cloudAvailable={cloudAvailable}
+                 />
+               </Suspense>
              )}
            </section>
          )}
 
         {tab === 'async' && (
-          <AsyncQueueDisplay
-            state={asyncState}
-            setState={setAsyncState}
-            onQr={(dataUrl) =>
-              setAsyncState((prev) => ({ ...prev, qrState: { selectedId: 'latest', dataUrl } }))
-            }
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <AsyncQueueDisplay
+              state={asyncState}
+              setState={setAsyncState}
+              onQr={(dataUrl) =>
+                setAsyncState((prev) => ({ ...prev, qrState: { selectedId: 'latest', dataUrl } }))
+              }
+            />
+          </Suspense>
         )}
 
         {tab === 'quests' && (
-          <QuestsTab
-            addQuest={addQuest}
-            newQuest={newQuest}
-            setNewQuest={setNewQuest}
-            STAT_META={STAT_META}
-            PROOF_META={PROOF_META}
-            state={state}
-            requestQuestCompletion={requestQuestCompletion}
-            deleteQuest={deleteQuest}
-            editingQuestId={editingQuestId}
-            editingQuest={editingQuest}
-            setEditingQuest={setEditingQuest}
-            cancelEditingQuest={cancelEditingQuest}
-            saveEditingQuest={saveEditingQuest}
-            QUEST_DIFFICULTY_PRESETS={QUEST_DIFFICULTY_PRESETS}
-            QUEST_XP_MIN={QUEST_XP_MIN}
-            QUEST_XP_MAX={QUEST_XP_MAX}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <QuestsTab
+              addQuest={addQuest}
+              newQuest={newQuest}
+              setNewQuest={setNewQuest}
+              STAT_META={STAT_META}
+              PROOF_META={PROOF_META}
+              state={state}
+              requestQuestCompletion={requestQuestCompletion}
+              deleteQuest={deleteQuest}
+              editingQuestId={editingQuestId}
+              editingQuest={editingQuest}
+              setEditingQuest={setEditingQuest}
+              cancelEditingQuest={cancelEditingQuest}
+              saveEditingQuest={saveEditingQuest}
+              QUEST_DIFFICULTY_PRESETS={QUEST_DIFFICULTY_PRESETS}
+              QUEST_XP_MIN={QUEST_XP_MIN}
+              QUEST_XP_MAX={QUEST_XP_MAX}
+            />
+          </Suspense>
         )}
 
         {tab === 'achievements' && (
-          <AchievementsTab
-            state={state}
-            achievements={ACHIEVEMENTS}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <AchievementsTab
+              state={state}
+              achievements={ACHIEVEMENTS}
+            />
+          </Suspense>
         )}
 
-{tab === 'character' && (
-          <CharacterTab
-            state={state}
-            dominantStat={dominantStat}
-            tier={tier}
-            STAT_META={STAT_META}
-            strongestStat={strongestStat}
-            workoutRegimen={workoutRegimen}
-            streakMultiplier={streakMultiplier}
-            bossProgress={bossProgress}
-            completedToday={completedToday}
-            dailyXpEarned={dailyXpEarned}
-            readingGoal={readingGoal}
-            booksProgress={booksProgress}
-            readingXpEarned={readingXpEarned}
-            archetype={state.archetype}
-            xp={state.xp}
-            session={session}
-            setState={setState}
-          />
+        {tab === 'character' && (
+          <Suspense fallback={<LoadingFallback />}>
+            <CharacterTab
+              state={state}
+              dominantStat={dominantStat}
+              tier={tier}
+              STAT_META={STAT_META}
+              strongestStat={strongestStat}
+              workoutRegimen={workoutRegimen}
+              streakMultiplier={streakMultiplier}
+              bossProgress={bossProgress}
+              completedToday={completedToday}
+              dailyXpEarned={dailyXpEarned}
+              readingGoal={readingGoal}
+              booksProgress={booksProgress}
+              readingXpEarned={readingXpEarned}
+              archetype={state.archetype}
+              xp={state.xp}
+              session={session}
+              setState={setState}
+            />
+          </Suspense>
         )}
 
-{tab === 'boss' && (
-          <BossTab
-            state={state}
-            weeklyBoss={weeklyBoss}
-            bossHpRemaining={bossHpRemaining}
-            baseBossDamage={baseBossDamage}
-            streakMultiplier={streakMultiplier}
-            driftMessage={driftMessage}
-            bossProgress={bossProgress}
-            bossDefeated={bossDefeated}
-            isBossArchived={isBossArchived}
-            archiveBossVictory={archiveBossVictory}
-            completedToday={completedToday}
-            resetApp={resetApp}
-            bossPulse={bossPulse}
-            dominantStat={dominantStat}
-          />
+        {tab === 'boss' && (
+          <Suspense fallback={<LoadingFallback />}>
+            <BossTab
+              state={state}
+              weeklyBoss={weeklyBoss}
+              bossHpRemaining={bossHpRemaining}
+              baseBossDamage={baseBossDamage}
+              streakMultiplier={streakMultiplier}
+              driftMessage={driftMessage}
+              bossProgress={bossProgress}
+              bossDefeated={bossDefeated}
+              isBossArchived={isBossArchived}
+              archiveBossVictory={archiveBossVictory}
+              completedToday={completedToday}
+              resetApp={resetApp}
+              bossPulse={bossPulse}
+              dominantStat={dominantStat}
+            />
+          </Suspense>
         )}
 
         {tab === 'co-op' && currentUserId && (
-          <CoopBossTab
-            session={session}
-            currentUserId={currentUserId}
-            state={state}
-            weeklyBoss={weeklyBoss}
-            bossDamage={bossDamage}
-            bossHpRemaining={bossHpRemaining}
-            bossProgress={bossProgress}
-            baseBossDamage={baseBossDamage}
-            streakMultiplier={streakMultiplier}
-            archiveBossVictory={archiveBossVictory}
-            isBossArchived={isBossArchived}
-            bossDefeated={bossDefeated}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <CoopBossTab
+              session={session}
+              currentUserId={currentUserId}
+              state={state}
+              weeklyBoss={weeklyBoss}
+              bossDamage={bossDamage}
+              bossHpRemaining={bossHpRemaining}
+              bossProgress={bossProgress}
+              baseBossDamage={baseBossDamage}
+              streakMultiplier={streakMultiplier}
+              archiveBossVictory={archiveBossVictory}
+              isBossArchived={isBossArchived}
+              bossDefeated={bossDefeated}
+            />
+          </Suspense>
         )}
 
         {tab === 'leaderboard' && (
-          <LeaderboardTab
-            session={session}
-            currentUserId={currentUserId}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <LeaderboardTab
+              session={session}
+              currentUserId={currentUserId}
+            />
+          </Suspense>
         )}
 
         {tab === 'guild' && currentUserId && (
-          <GuildTab
-            session={session}
-            currentUserId={currentUserId}
-            state={state}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <GuildTab
+              session={session}
+              currentUserId={currentUserId}
+              state={state}
+            />
+          </Suspense>
         )}
 
         {tab === 'settings' && (
-          <SettingsTab
-            session={session}
-            cloudAvailable={cloudAvailable}
-            localMode={localMode}
-            signOut={signOut}
-            settings={settings}
-            setSettings={setSettings}
-            exportSaveData={exportSaveData}
-            importSaveData={importSaveData}
-            resetApp={resetApp}
-            backupMessage={backupMessage}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <SettingsTab
+              session={session}
+              cloudAvailable={cloudAvailable}
+              localMode={localMode}
+              signOut={signOut}
+              settings={settings}
+              setSettings={setSettings}
+              exportSaveData={exportSaveData}
+              importSaveData={importSaveData}
+              resetApp={resetApp}
+              backupMessage={backupMessage}
+            />
+          </Suspense>
         )}
 
         {tab === 'messages' && (
-          <MessagesTab
-            session={session}
-            localMode={localMode}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <MessagesTab
+              session={session}
+              localMode={localMode}
+            />
+          </Suspense>
         )}
       </section>
 

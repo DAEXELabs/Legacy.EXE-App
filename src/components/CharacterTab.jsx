@@ -31,7 +31,7 @@ export function CharacterTab({
       <div className="hero-card large character-card operator-profile">
         <div className={`avatar big ${dominantStat}`}>
           {state.avatar && state.avatar.startsWith && (state.avatar.startsWith('data:image') || state.avatar.startsWith('http')) ? (
-            <img src={state.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '26px' }} />
+            <img src={state.avatar} alt="Avatar" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '26px' }} />
           ) : (
             state.avatar
           )}

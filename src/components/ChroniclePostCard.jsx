@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { BlockUserButton } from './BlockUserButton';
 import { ReportModal } from './ReportModal';
 import { CommentSection } from './CommentSection';
 
-export function ChroniclePostCard({
+function ChroniclePostCard({
   post,
   profile,
   onEncourage,
@@ -35,7 +35,7 @@ export function ChroniclePostCard({
       <p className="feed-caption">{post.caption}</p>
 
       {post.image_url && (
-        <img className="feed-image" src={post.image_url} alt={post.type} />
+        <img className="feed-image" src={post.image_url} alt={post.type} loading="lazy" decoding="async" />
       )}
 
       {post.media_urls && post.media_urls.length > 0 && (
@@ -44,11 +44,11 @@ export function ChroniclePostCard({
             const mt = post.media_types?.[i];
             if (mt === 'video') {
               return (
-                <video key={i} className="media-grid-item" src={url} controls muted loop playsInline />
+                <video key={i} className="media-grid-item" src={url} controls muted loop playsInline loading="lazy" />
               );
             }
             return (
-              <img key={i} className="media-grid-item" src={url} alt={`${post.type} ${i + 1}`} />
+              <img key={i} className="media-grid-item" src={url} alt={`${post.type} ${i + 1}`} loading="lazy" decoding="async" />
             );
           })}
         </div>
@@ -110,3 +110,7 @@ export function ChroniclePostCard({
     </article>
   );
 }
+
+export const ChroniclePostCardMemo = React.memo(ChroniclePostCard);
+export { ChroniclePostCard };
+export default React.memo(ChroniclePostCard);

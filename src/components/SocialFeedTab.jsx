@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   getPublicChronicleFeed,
   encouragePost,
@@ -42,7 +42,7 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
     return () => { cancelled = true; };
   }, [cloudAvailable, session, currentUserId]);
 
-  const handleEncourage = async (post) => {
+  const handleEncourage = useCallback(async (post) => {
     if (!cloudAvailable || !session) return;
     const { error } = await encouragePost(post.id, currentUserId);
     if (!error) {
@@ -51,9 +51,9 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
         encouragement_count: Number(p.encouragement_count || 0) + 1,
       } : p));
     }
-  };
+  }, [cloudAvailable, session, currentUserId]);
 
-  const handleFollow = async (post) => {
+  const handleFollow = useCallback(async (post) => {
     if (!cloudAvailable || !session) return;
     const authorId = post.user_id;
     if (followingIds.has(authorId)) {
@@ -67,9 +67,12 @@ export function SocialFeedTab({ session, currentUserId, cloudAvailable }) {
       await followUser(currentUserId, authorId);
       setFollowingIds(prev => new Set(prev).add(authorId));
     }
-  };
+  }, [cloudAvailable, session, currentUserId, followingIds]);
 
-  const visiblePosts = posts.filter(post => !blockedIds.has(post.user_id));
+  const visiblePosts = useMemo(
+    () => posts.filter(post => !blockedIds.has(post.user_id)),
+    [posts, blockedIds]
+  );
 
   if (!cloudAvailable) {
     return (

@@ -4,7 +4,7 @@ export async function getProfile(userId) {
   if (!supabase) return { data: null, error: new Error('Cloud not available') };
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, username, display_name, avatar, title, level, lifetime_xp, archetype')
     .eq('id', userId)
     .single();
   return { data, error };
@@ -20,23 +20,25 @@ export async function upsertProfile(profile) {
   return { data, error };
 }
 
-export async function getPublicChronicleFeed() {
+export async function getPublicChronicleFeed(limit = 50) {
   if (!supabase) return { data: [], error: new Error('Cloud not available') };
   const { data, error } = await supabase
     .from('chronicle_posts')
-    .select('*, profiles(username, display_name, avatar, title, level)')
+    .select('id, user_id, type, caption, image_url, visibility, encouragement_count, date, xp, media_urls, media_types, created_at, profiles(username, display_name, avatar, title, level)')
     .eq('visibility', 'public')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(limit);
   return { data: data || [], error };
 }
 
-export async function getUserChroniclePosts(userId) {
+export async function getUserChroniclePosts(userId, limit = 50) {
   if (!supabase) return { data: [], error: new Error('Cloud not available') };
   const { data, error } = await supabase
     .from('chronicle_posts')
-    .select('*')
+    .select('id, user_id, type, caption, image_url, visibility, encouragement_count, date, xp, media_urls, media_types, created_at')
     .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(limit);
   return { data: data || [], error };
 }
 

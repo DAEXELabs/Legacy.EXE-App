@@ -545,9 +545,9 @@ export function GuildTab({ session, currentUserId, state }) {
                         {msg.media_urls.slice(0, 4).map((url, i) => {
                           const mt = msg.media_types?.[i];
                           if (mt === 'video') {
-                            return <video key={i} className="guild-media-item" src={url} controls muted loop playsInline />;
+                            return <video key={i} className="guild-media-item" src={url} controls muted loop playsInline loading="lazy" />;
                           }
-                          return <img key={i} className="guild-media-item" src={url} alt="media" />;
+                          return <img key={i} className="guild-media-item" src={url} alt="media" loading="lazy" decoding="async" />;
                         })}
                       </div>
                     )}

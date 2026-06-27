@@ -1,7 +1,8 @@
+import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { playClick } from '../lib/soundFx';
 
-export function QuestItem({ quest, onComplete, STAT_META, PROOF_META, pulseActive }) {
+function QuestItem({ quest, onComplete, STAT_META, PROOF_META, pulseActive }) {
   const Icon = STAT_META[quest.stat].icon;
   const ProofIcon = PROOF_META[quest.proof]?.icon || CheckCircle2;
 
@@ -40,3 +41,7 @@ export function QuestItem({ quest, onComplete, STAT_META, PROOF_META, pulseActiv
     </article>
   );
 }
+
+export const QuestItemMemo = React.memo(QuestItem);
+export { QuestItem };
+export default React.memo(QuestItem);

@@ -6,7 +6,7 @@ export function ProfileCard({ profile, compact = false }) {
 
   const renderAvatar = () => {
     if (avatar && avatar.startsWith?.('data:image')) {
-      return <img src={avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '14px' }} />;
+      return <img src={avatar} alt="Avatar" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '14px' }} />;
     }
     return avatar;
   };
