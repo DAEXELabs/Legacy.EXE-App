@@ -11,8 +11,14 @@ create table if not exists profiles (
   archetype text check (archetype in ('warrior','builder','scholar')),
   level integer default 1,
   xp integer default 0,
+  birthday date,
+  age_verified_at timestamptz,
   created_at timestamptz default now()
 );
+
+-- Backfill columns for environments where profiles already existed.
+alter table profiles add column if not exists birthday date;
+alter table profiles add column if not exists age_verified_at timestamptz;
 
 -- Chronicle Posts (Social Feed)
 create table if not exists chronicle_posts (

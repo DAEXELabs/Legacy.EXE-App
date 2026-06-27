@@ -2,6 +2,8 @@ export const starterState = {
   playerName: '',
   avatar: '⚔️',
   title: 'Uncompiled Operator',
+  birthday: null,
+  ageVerified: false,
   xp: 0,
   lifetimeXp: 0,
   level: 1,

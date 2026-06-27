@@ -53,6 +53,12 @@ p { color: #b9c1d9; }
 .complete-btn:disabled { color: #51ffa9; background: rgba(81,255,169,.08); }
 .ghost { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,.1); background: transparent; color: #dce3ff; padding: 8px 10px; border-radius: 12px; font-size: 12px; }
 .form-card { display: grid; gap: 12px; }
+.field-hint { color: #9fb0ff; font-weight: 500; font-size: 0.78rem; margin-left: 6px; }
+.field-help { color: #b9c1d9; font-size: 0.8rem; margin: -2px 0 0; line-height: 1.4; }
+.field-error { color: #ffb1b1; font-size: 0.85rem; margin: 0; padding: 8px 10px; border-radius: 12px; background: rgba(255,91,91,.10); border: 1px solid rgba(255,91,91,.25); }
+.age-blocked-frame { display: grid; gap: 14px; align-content: start; }
+.age-blocked-note { color: #b9c1d9; font-size: 0.9rem; line-height: 1.5; }
+.age-blocked-action { text-decoration: none; margin-top: 6px; }
 input, select, textarea { width: 100%; border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 12px; background: rgba(0,0,0,.25); color: white; }
 textarea { min-height: 96px; resize: vertical; }
 .form-grid { display: grid; grid-template-columns: 1fr 100px; gap: 10px; }

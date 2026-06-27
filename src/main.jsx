@@ -35,6 +35,8 @@ import {
   getRegimenTotals,
 } from './data/workoutRegimens';
 import { starterState } from './data/starterState';
+import { upsertProfile } from './lib/socialApi';
+import { calculateAge, meetsMinimumAge, MINIMUM_AGE } from './utils/ageVerification';
 import { AuthScreen } from './components/AuthScreen';
 import { UserMenu } from './components/UserMenu';
 import { FriendList } from './components/FriendList';
@@ -243,7 +245,11 @@ function App() {
     playerName: '',
     avatar: '⚔️',
     title: 'Uncompiled Operator',
+    birthday: '',
   });
+
+  const [ageError, setAgeError] = useState('');
+  const [ageBlocked, setAgeBlocked] = useState(false);
 
   const [asyncState, setAsyncState] = useState(readAsyncState);
   const [xpToast, setXpToast] = useState(null);
@@ -470,9 +476,54 @@ function App() {
 
   function finishOnboarding(e) {
     e.preventDefault();
-    playClick();
+    setAgeError('');
+
     const name = profileDraft.playerName.trim() || 'Operator';
-    setState(prev => ({ ...prev, ...profileDraft, playerName: name, onboarded: true }));
+    const birthday = profileDraft.birthday;
+
+    if (!birthday) {
+      setAgeError(`Please enter your date of birth. Legacy.EXE is for users ${MINIMUM_AGE} and older.`);
+      return;
+    }
+
+    const age = calculateAge(birthday);
+
+    if (age === null) {
+      setAgeError('That date doesn\u2019t look right. Please enter a valid date of birth.');
+      return;
+    }
+
+    if (age < MINIMUM_AGE) {
+      setAgeBlocked(true);
+      return;
+    }
+
+    if (!meetsMinimumAge(birthday)) {
+      setAgeError(`Sorry, you must be at least ${MINIMUM_AGE} to use Legacy.EXE.`);
+      return;
+    }
+
+    playClick();
+
+    setState(prev => ({
+      ...prev,
+      ...profileDraft,
+      birthday,
+      playerName: name,
+      ageVerified: true,
+      onboarded: true,
+    }));
+
+    if (session?.user?.id) {
+      upsertProfile({
+        id: session.user.id,
+        username: profileDraft.playerName.trim() || 'operator',
+        display_name: name,
+        avatar: profileDraft.avatar,
+        title: profileDraft.title,
+        birthday,
+      }).catch(() => {});
+    }
   }
 
   const handleArchetypeSelect = (archetype) => {
@@ -1075,6 +1126,8 @@ function App() {
         finishOnboarding={finishOnboarding}
         onArchetypeSelect={handleArchetypeSelect}
         session={session}
+        ageError={ageError}
+        ageBlocked={ageBlocked}
       />
     );
   }

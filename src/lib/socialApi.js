@@ -4,7 +4,7 @@ export async function getProfile(userId) {
   if (!supabase) return { data: null, error: new Error('Cloud not available') };
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, username, display_name, avatar, title, level, lifetime_xp, archetype')
+    .select('id, username, display_name, avatar, title, level, lifetime_xp, archetype, birthday, age_verified_at')
     .eq('id', userId)
     .single();
   return { data, error };
@@ -12,9 +12,15 @@ export async function getProfile(userId) {
 
 export async function upsertProfile(profile) {
   if (!supabase) return { data: null, error: new Error('Cloud not available') };
+  const payload = { ...profile };
+  if (payload.birthday) {
+    const isoDate = new Date(payload.birthday).toISOString().slice(0, 10);
+    payload.birthday = isoDate;
+    payload.age_verified_at = new Date().toISOString();
+  }
   const { data, error } = await supabase
     .from('profiles')
-    .upsert(profile, { onConflict: 'id' })
+    .upsert(payload, { onConflict: 'id' })
     .select()
     .single();
   return { data, error };
