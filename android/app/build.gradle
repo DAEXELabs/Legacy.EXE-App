@@ -1,6 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+    }
     signingConfigs {
         release {
             storeFile file(MYAPP_RELEASE_STORE_FILE)
