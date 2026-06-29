@@ -21,7 +21,7 @@ plugins {
 }
 
 def twaManifest = [
-    applicationId: 'daexelabs.legacyexe',
+    applicationId: 'com.daexelabs.legacyexe',
     hostName: 'legacy-exe-app.vercel.app', // The domain being opened in the TWA.
     launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
     name: 'Legacy.EXE', // The application name.
@@ -52,9 +52,9 @@ def twaManifest = [
 
 android {
     compileSdkVersion 36
-    namespace "daexelabs.legacyexe"
+    namespace "com.daexelabs.legacyexe"
     defaultConfig {
-        applicationId "daexelabs.legacyexe"
+        applicationId "com.daexelabs.legacyexe"
         minSdkVersion 21
         targetSdkVersion 35
         versionCode 1

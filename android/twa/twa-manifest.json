@@ -1,5 +1,5 @@
 {
-  "packageId": "daexelabs.legacyexe",
+  "packageId": "com.daexelabs.legacyexe",
   "host": "legacy-exe-app.vercel.app",
   "name": "Legacy.EXE",
   "launcherName": "Legacy",
