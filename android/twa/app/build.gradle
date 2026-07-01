@@ -50,6 +50,28 @@ def twaManifest = [
     orientation: 'portrait',
 ]
 
+def signingProperties = new Properties()
+def signingPropertiesFile = rootProject.file('signing.properties')
+if (signingPropertiesFile.exists()) {
+    signingPropertiesFile.withInputStream { stream ->
+        signingProperties.load(stream)
+    }
+}
+
+def signingProperty = { name ->
+    providers.gradleProperty(name)
+            .orElse(providers.environmentVariable(name))
+            .orElse(providers.provider { signingProperties.getProperty(name) })
+}
+
+def releaseStoreFile = providers.gradleProperty('RELEASE_STORE_FILE')
+        .orElse(providers.environmentVariable('RELEASE_STORE_FILE'))
+        .orElse(providers.provider { signingProperties.getProperty('RELEASE_STORE_FILE') })
+        .orElse('../android.keystore')
+def releaseStorePassword = signingProperty('RELEASE_STORE_PASSWORD')
+def releaseKeyAlias = signingProperty('RELEASE_KEY_ALIAS').orElse('android')
+def releaseKeyPassword = signingProperty('RELEASE_KEY_PASSWORD')
+
 android {
     compileSdk 36
     namespace "com.daexelabs.legacyexe"
@@ -150,9 +172,19 @@ android {
 
         
     }
+    signingConfigs {
+        release {
+            storeFile file(releaseStoreFile.get())
+            storePassword releaseStorePassword.orNull
+            keyAlias releaseKeyAlias.get()
+            keyPassword releaseKeyPassword.orNull
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
@@ -203,6 +235,31 @@ tasks.register('generateShortcutsFile') {
 
 tasks.named('preBuild') {
     dependsOn(tasks.named('generateShortcutsFile'))
+}
+
+tasks.register('validateReleaseSigning') {
+    doLast {
+        def missingProperties = []
+        if (!releaseStorePassword.isPresent()) {
+            missingProperties.add('RELEASE_STORE_PASSWORD')
+        }
+        if (!releaseKeyPassword.isPresent()) {
+            missingProperties.add('RELEASE_KEY_PASSWORD')
+        }
+        if (!file(releaseStoreFile.get()).exists()) {
+            missingProperties.add('RELEASE_STORE_FILE')
+        }
+
+        if (!missingProperties.empty) {
+            throw new GradleException(
+                    "Release signing is not configured. Add ${missingProperties.join(', ')} " +
+                    "to android/twa/signing.properties or pass them as environment variables.")
+        }
+    }
+}
+
+tasks.matching { it.name == 'preReleaseBuild' }.configureEach {
+    dependsOn(tasks.named('validateReleaseSigning'))
 }
 
 repositories {
