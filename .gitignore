@@ -2,3 +2,4 @@ dist/
 node_modules/
 android/twa/signing.properties
 android/twa/upload-keystore.jks
+android/twa/upload_certificate.pem
