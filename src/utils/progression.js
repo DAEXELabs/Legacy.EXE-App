@@ -1,4 +1,4 @@
-import { BOSSES } from '../data/bosses';
+import { BOSSES } from '../data/bosses.js';
 
 export function xpForLevel(level) {
   return level * 200;
@@ -24,8 +24,17 @@ export function getWeekNumber() {
   return Math.ceil((days + start.getDay() + 1) / 7);
 }
 
-export function getWeeklyBoss() {
-  const week = getWeekNumber();
+export function getCampaignWeek(startedAt, fallbackWeek = getWeekNumber()) {
+  const startedAtMs = new Date(startedAt).getTime();
+
+  if (!Number.isFinite(startedAtMs)) return fallbackWeek;
+
+  const elapsedMs = Math.max(0, Date.now() - startedAtMs);
+  return Math.floor(elapsedMs / (7 * 86400000)) + 1;
+}
+
+export function getWeeklyBoss(requestedWeek = getWeekNumber()) {
+  const week = Math.max(1, Math.floor(Number(requestedWeek) || 1));
   const index = (week - 1) % BOSSES.length;
 
   return {

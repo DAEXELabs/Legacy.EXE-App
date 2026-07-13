@@ -20,7 +20,15 @@ export function AuthScreen({ onLocalContinue, onAuthSuccess, cloudAvailable }) {
       }
 
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              boss_campaign_started_at: new Date().toISOString(),
+            },
+          },
+        });
         if (error) throw error;
         setError('Sign-up successful! Check your email, then sign in.');
         setMode('signin');

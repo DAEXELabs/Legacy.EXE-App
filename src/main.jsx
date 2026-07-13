@@ -21,6 +21,8 @@ import {
   xpForLevel,
   computeTier,
   todayKey,
+  getWeekNumber,
+  getCampaignWeek,
   getWeeklyBoss,
   getStreakMultiplier,
   applyXpProgress,
@@ -177,6 +179,9 @@ function App() {
         workoutLogs: parsed.workoutLogs || [],
         dailyReflections: parsed.dailyReflections || {},
         chroniclePosts: parsed.chroniclePosts || [],
+        currentBossWeek: parsed.currentBossWeek || getWeekNumber(),
+        bossCampaignStartedAt: parsed.bossCampaignStartedAt || null,
+        bossCampaignUserId: parsed.bossCampaignUserId || null,
         bossArchive: parsed.bossArchive || [],
         readingGoal: {
           ...starterState.readingGoal,
@@ -188,6 +193,24 @@ function App() {
       return starterState;
     }
   });
+
+  const accountBossCampaignStartedAt = user?.user_metadata?.boss_campaign_started_at;
+
+  useEffect(() => {
+    if (!currentUserId || !accountBossCampaignStartedAt) return;
+
+    setState(prev => {
+      if (prev.bossCampaignUserId === currentUserId) return prev;
+
+      return {
+        ...prev,
+        currentBossWeek: getCampaignWeek(accountBossCampaignStartedAt, 1),
+        bossCampaignStartedAt: accountBossCampaignStartedAt,
+        bossCampaignUserId: currentUserId,
+        bossArchive: [],
+      };
+    });
+  }, [accountBossCampaignStartedAt, currentUserId]);
 
   const [newQuest, setNewQuest] = useState({
     title: '',
@@ -313,7 +336,13 @@ function App() {
     }
   }, [state.quests, state.hp, state.onboarded]);
 
-  const weeklyBoss = useMemo(() => getWeeklyBoss(), []);
+  const activeBossWeek = useMemo(
+    () => state.bossCampaignStartedAt
+      ? getCampaignWeek(state.bossCampaignStartedAt, 1)
+      : getWeekNumber(),
+    [state.bossCampaignStartedAt]
+  );
+  const weeklyBoss = useMemo(() => getWeeklyBoss(activeBossWeek), [activeBossWeek]);
   const currentLevelXp = useMemo(() => xpForLevel(state.level), [state.level]);
   const progress = useMemo(
     () => Math.min(100, Math.round((state.xp / currentLevelXp) * 100)),
@@ -1085,6 +1114,9 @@ function App() {
           workoutLogs: importedState.workoutLogs || [],
           dailyReflections: importedState.dailyReflections || {},
           chroniclePosts: importedState.chroniclePosts || [],
+          currentBossWeek: importedState.currentBossWeek || getWeekNumber(),
+          bossCampaignStartedAt: importedState.bossCampaignStartedAt || null,
+          bossCampaignUserId: importedState.bossCampaignUserId || null,
           bossArchive: importedState.bossArchive || [],
           readingGoal: {
             ...starterState.readingGoal,
@@ -1105,8 +1137,14 @@ function App() {
 
   const resetApp = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
-    setState(starterState);
-  }, []);
+    setState({
+      ...starterState,
+      currentBossWeek: 1,
+      bossCampaignStartedAt: new Date().toISOString(),
+      bossCampaignUserId: currentUserId || null,
+      bossArchive: [],
+    });
+  }, [currentUserId]);
 
   if (!authLoading && !session && !localMode) {
     return (

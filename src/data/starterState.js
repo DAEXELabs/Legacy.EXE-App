@@ -15,6 +15,9 @@ export const starterState = {
   workoutLogs: [],
   dailyReflections: {},
   chroniclePosts: [],
+  currentBossWeek: 1,
+  bossCampaignStartedAt: new Date().toISOString(),
+  bossCampaignUserId: null,
   bossArchive: [],
   achievements: [],
   readingGoal: {
