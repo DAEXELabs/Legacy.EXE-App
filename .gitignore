@@ -1,5 +1,9 @@
 dist/
 node_modules/
+.env.local
 android/twa/signing.properties
 android/twa/upload-keystore.jks
 android/twa/upload_certificate.pem
+
+.vercel
+.env*
