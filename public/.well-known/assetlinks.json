@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.daexelabs.legacyexe",
+      "sha256_cert_fingerprints": [
+        "C4:D3:21:B6:1D:B6:6A:A5:06:11:82:5F:96:03:C1:AA:40:1F:84:33:27:6B:E0:28:89:C4:B4:72:35:BB:5C:09"
+      ]
+    }
+  }
+]
